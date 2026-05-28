@@ -26,7 +26,7 @@ function generarNubes(): NubeCfg[] {
   const banda = (arribaMax - arribaMin) / CANTIDAD;
 
   return Array.from({ length: CANTIDAD }, (_, i) => {
-    const duracion = aleatorio(34, 60);
+    const duracion = aleatorio(68, 120); // más lento (≈50% menos velocidad)
     return {
       top: arribaMin + banda * i + aleatorio(0, banda * 0.8),
       escala: aleatorio(0.45, 1.25),
