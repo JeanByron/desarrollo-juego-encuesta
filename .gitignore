@@ -21,3 +21,6 @@ preguntas.txt
 
 # Python cache generado al ejecutar las skills
 .claude/skills/**/__pycache__/
+
+# Configuracion local de Claude Code (permisos por maquina)
+.claude/settings.local.json
