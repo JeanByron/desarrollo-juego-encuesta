@@ -18,3 +18,6 @@ dist-ssr
 # Artefactos temporales generados al extraer .docx
 document_raw.xml
 preguntas.txt
+
+# Python cache generado al ejecutar las skills
+.claude/skills/**/__pycache__/
