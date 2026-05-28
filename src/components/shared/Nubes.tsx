@@ -1,24 +1,41 @@
+import { useMemo } from "react";
+
 // Cielo de Los Simpson: degradado azul→pasto pintado en un layer fijo (cubre
 // siempre el viewport, sin los problemas de `background-attachment: fixed` en
 // móviles) + nubes blancas que cruzan lentamente.
 // Decorativo: fijo, detrás del contenido y sin capturar clics.
 const CIELO = "linear-gradient(180deg, #7fd0f5 0%, #aee3fb 55%, #cdeecb 82%, #9bd35a 100%)";
 
-// Nubes repartidas por todo el cielo: `top` variado (de ~6% a ~72%) y el
-// `retraso` negativo escalonado a lo largo de cada `duracion` para que en
-// cualquier instante también queden distribuidas en horizontal.
-const nubes = [
-  { top: "6%", escala: 1.0, retraso: "-2s", duracion: "48s" },
-  { top: "16%", escala: 0.6, retraso: "-6s", duracion: "38s" },
-  { top: "12%", escala: 0.85, retraso: "-13s", duracion: "52s" },
-  { top: "28%", escala: 1.2, retraso: "-20s", duracion: "56s" },
-  { top: "24%", escala: 0.5, retraso: "-15s", duracion: "33s" },
-  { top: "40%", escala: 0.9, retraso: "-28s", duracion: "50s" },
-  { top: "52%", escala: 0.7, retraso: "-29s", duracion: "44s" },
-  { top: "62%", escala: 1.05, retraso: "-44s", duracion: "58s" },
-  { top: "70%", escala: 0.55, retraso: "-31s", duracion: "36s" },
-  { top: "36%", escala: 0.65, retraso: "-38s", duracion: "40s" }
-];
+const CANTIDAD = 11;
+
+interface NubeCfg {
+  top: number; // %
+  escala: number;
+  duracion: number; // s
+  retraso: number; // s (negativo: adelanta la fase para repartirlas en horizontal)
+}
+
+const aleatorio = (min: number, max: number) => min + Math.random() * (max - min);
+
+// Genera nubes repartidas por todo el cielo: el `top` se reparte en bandas
+// (una por nube) con jitter para que no se amontonen, y el desfase horizontal
+// es aleatorio dentro de la duración de cada nube. Cambia en cada refresco.
+function generarNubes(): NubeCfg[] {
+  const arribaMin = 4;
+  const arribaMax = 74;
+  const banda = (arribaMax - arribaMin) / CANTIDAD;
+
+  return Array.from({ length: CANTIDAD }, (_, i) => {
+    const duracion = aleatorio(34, 60);
+    return {
+      top: arribaMin + banda * i + aleatorio(0, banda * 0.8),
+      escala: aleatorio(0.45, 1.25),
+      duracion,
+      // Fase aleatoria: la nube empieza en un punto cualquiera de su recorrido.
+      retraso: -aleatorio(0, duracion)
+    };
+  });
+}
 
 // Nube de varios bultos (no un óvalo): un cuerpo alargado + tres montículos.
 function Nube() {
@@ -33,6 +50,9 @@ function Nube() {
 }
 
 export function Nubes() {
+  // Se generan una sola vez por montaje (es decir, por carga/refresco de página).
+  const nubes = useMemo(generarNubes, []);
+
   return (
     <div
       aria-hidden
@@ -44,7 +64,11 @@ export function Nubes() {
         <div
           key={i}
           className="absolute left-0 animate-derivar"
-          style={{ top: n.top, animationDelay: n.retraso, animationDuration: n.duracion }}
+          style={{
+            top: `${n.top}%`,
+            animationDelay: `${n.retraso}s`,
+            animationDuration: `${n.duracion}s`
+          }}
         >
           {/* Capa interna: la escala, para que la animación no la sobrescriba. */}
           <div style={{ transform: `scale(${n.escala})` }}>
