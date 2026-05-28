@@ -30,7 +30,7 @@ export function JugadorPage() {
 
   if (isLoading) {
     return (
-      <Layout ancho="estrecho">
+      <Layout ancho="estrecho" centrado>
         <Tarjeta className="text-center">Cargando partida...</Tarjeta>
       </Layout>
     );
@@ -38,7 +38,7 @@ export function JugadorPage() {
 
   if (!partida) {
     return (
-      <Layout ancho="estrecho">
+      <Layout ancho="estrecho" centrado>
         <Tarjeta className="text-center space-y-2">
           <h2 className="font-display text-2xl">Aún no hay partida</h2>
           <p className="text-gray-600">
@@ -66,7 +66,7 @@ export function JugadorPage() {
       );
     }
     return (
-      <Layout ancho="estrecho">
+      <Layout ancho="estrecho" centrado>
         <Tarjeta className="text-center space-y-2">
           <h2 className="font-display text-2xl">La partida ya terminó</h2>
           <p>Espera a que la profesora cree una nueva para volver a jugar.</p>
@@ -79,7 +79,7 @@ export function JugadorPage() {
   if (!yo) {
     if (pasoLocal === "nombre") {
       return (
-        <Layout ancho="estrecho">
+        <Layout ancho="estrecho" centrado>
           <PantallaNombre
             onListo={(n) => {
               setNombreLocal(n);
@@ -91,7 +91,7 @@ export function JugadorPage() {
     }
 
     return (
-      <Layout ancho="estrecho">
+      <Layout ancho="estrecho" centrado>
         <SeleccionPersonaje
           nombre={nombreLocal || nombre}
           jugadores={jugadores}
@@ -132,7 +132,7 @@ export function JugadorPage() {
   // Ya estoy registrado
   if (partida.estado === "lobby") {
     return (
-      <Layout ancho="estrecho">
+      <Layout ancho="estrecho" centrado>
         <PantallaEspera yo={yo} jugadores={jugadores} />
       </Layout>
     );

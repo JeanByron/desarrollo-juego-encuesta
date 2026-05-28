@@ -18,31 +18,9 @@ body {
   font-family: "Nunito", system-ui, sans-serif;
   color: #2a2a2a;
   -webkit-tap-highlight-color: transparent;
-
-  /* Cielo icónico de Los Simpson: azul con nubes blancas y un suelo de pasto.
-     Las nubes son radial-gradients fijos; el degradado base va de cielo a
-     verde pasto en el borde inferior. */
+  /* El cielo (degradado + nubes) lo pinta el componente <Nubes/> en un layer
+     fijo; aquí solo dejamos un color de respaldo por si tarda en montar. */
   background-color: #7fd0f5;
-  background-image:
-    radial-gradient(closest-side, rgba(255, 255, 255, 0.95) 78%, rgba(255, 255, 255, 0) 80%),
-    radial-gradient(closest-side, rgba(255, 255, 255, 0.9) 78%, rgba(255, 255, 255, 0) 80%),
-    radial-gradient(closest-side, rgba(255, 255, 255, 0.85) 78%, rgba(255, 255, 255, 0) 80%),
-    radial-gradient(closest-side, rgba(255, 255, 255, 0.9) 78%, rgba(255, 255, 255, 0) 80%),
-    linear-gradient(180deg, #7fd0f5 0%, #aee3fb 55%, #cdeecb 82%, #9bd35a 100%);
-  background-repeat: no-repeat;
-  background-size:
-    180px 70px,
-    240px 90px,
-    150px 60px,
-    300px 110px,
-    100% 100%;
-  background-position:
-    8vw 12vh,
-    62vw 8vh,
-    80vw 26vh,
-    30vw 30vh,
-    center;
-  background-attachment: fixed;
 }
 
 button {
