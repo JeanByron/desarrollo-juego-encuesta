@@ -73,10 +73,12 @@ export default {
           "25%": { transform: "rotate(-6deg)" },
           "75%": { transform: "rotate(6deg)" }
         },
-        // Desplazamiento horizontal de nubes.
+        // Desplazamiento horizontal de nubes a lo ancho del viewport.
+        // Nota: usamos vw (no %), porque translateX en % es relativo al ancho
+        // del propio elemento y dejaría las nubes amontonadas a la izquierda.
         derivar: {
-          "0%": { transform: "translateX(-10%)" },
-          "100%": { transform: "translateX(110%)" }
+          "0%": { transform: "translateX(-15vw)" },
+          "100%": { transform: "translateX(115vw)" }
         },
         // Destello de chispas/sprinkles.
         destello: {
