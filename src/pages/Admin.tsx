@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Link, Route, Routes, useNavigate } from "react-router-dom";
+import { Link, Route, Routes } from "react-router-dom";
 import { Layout } from "@/components/shared/Layout";
 import { Tarjeta } from "@/components/shared/Tarjeta";
 import { Boton } from "@/components/shared/Boton";
-import { Login } from "@/components/admin/Login";
 import { Lobby } from "@/components/admin/Lobby";
 import { PanelJuego } from "@/components/admin/PanelJuego";
 import { PantallaFinalAdmin } from "@/components/admin/PantallaFinalAdmin";
@@ -11,19 +10,8 @@ import { GestorPreguntas } from "@/components/admin/GestorPreguntas";
 import { usePartidaActiva } from "@/hooks/usePartidaActiva";
 import { useJugadores } from "@/hooks/useJugadores";
 import { useAvanzarPregunta, useReiniciarPartida } from "@/hooks/useAcciones";
-import { useAdminStore } from "@/store/useAdminStore";
-import { supabase } from "@/lib/supabase";
 
 export function AdminPage() {
-  const autenticada = useAdminStore((s) => s.autenticada);
-  if (!autenticada) {
-    return (
-      <Layout ancho="estrecho">
-        <Login />
-      </Layout>
-    );
-  }
-
   return (
     <Routes>
       <Route index element={<AdminPartida />} />
@@ -33,25 +21,12 @@ export function AdminPage() {
 }
 
 function NavAdmin({ titulo }: { titulo: string }) {
-  const navigate = useNavigate();
-  const cerrar = useAdminStore((s) => s.cerrar);
-
   return (
     <header className="flex flex-wrap items-center justify-between gap-2 mb-4">
       <h1 className="font-display text-2xl">{titulo}</h1>
       <nav className="flex gap-2 text-sm">
         <Link to="/admin" className="underline">Partida</Link>
         <Link to="/admin/preguntas" className="underline">Preguntas</Link>
-        <button
-          onClick={async () => {
-            await supabase.auth.signOut();
-            cerrar();
-            navigate("/");
-          }}
-          className="underline text-marca-rojo"
-        >
-          Cerrar sesión
-        </button>
       </nav>
     </header>
   );
