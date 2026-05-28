@@ -4,12 +4,20 @@
 // Decorativo: fijo, detrás del contenido y sin capturar clics.
 const CIELO = "linear-gradient(180deg, #7fd0f5 0%, #aee3fb 55%, #cdeecb 82%, #9bd35a 100%)";
 
+// Nubes repartidas por todo el cielo: `top` variado (de ~6% a ~72%) y el
+// `retraso` negativo escalonado a lo largo de cada `duracion` para que en
+// cualquier instante también queden distribuidas en horizontal.
 const nubes = [
-  { top: "8%", escala: 1.0, retraso: "0s", duracion: "45s" },
-  { top: "20%", escala: 0.65, retraso: "-12s", duracion: "38s" },
-  { top: "34%", escala: 1.25, retraso: "-28s", duracion: "55s" },
-  { top: "13%", escala: 0.85, retraso: "-22s", duracion: "50s" },
-  { top: "46%", escala: 0.5, retraso: "-8s", duracion: "34s" }
+  { top: "6%", escala: 1.0, retraso: "-4s", duracion: "48s" },
+  { top: "16%", escala: 0.6, retraso: "-19s", duracion: "38s" },
+  { top: "12%", escala: 0.85, retraso: "-36s", duracion: "52s" },
+  { top: "28%", escala: 1.2, retraso: "-8s", duracion: "56s" },
+  { top: "24%", escala: 0.5, retraso: "-23s", duracion: "33s" },
+  { top: "40%", escala: 0.9, retraso: "-42s", duracion: "50s" },
+  { top: "52%", escala: 0.7, retraso: "-13s", duracion: "44s" },
+  { top: "62%", escala: 1.05, retraso: "-50s", duracion: "58s" },
+  { top: "70%", escala: 0.55, retraso: "-27s", duracion: "36s" },
+  { top: "36%", escala: 0.65, retraso: "-34s", duracion: "40s" }
 ];
 
 // Nube de varios bultos (no un óvalo): un cuerpo alargado + tres montículos.
