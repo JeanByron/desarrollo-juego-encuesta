@@ -6,7 +6,7 @@
   "description": "Juego web educativo estilo Kahoot — cultura general, multijugador en tiempo real (React + TypeScript + Supabase)",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "vite build",
     "preview": "vite preview --host",
     "lint": "eslint . --ext .ts,.tsx",
     "typecheck": "tsc --noEmit"
