@@ -41,7 +41,7 @@ export function PantallaNombre({ onListo }: Props) {
           />
         </label>
         {error && <p className="text-marca-rojo font-bold text-center">{error}</p>}
-        <Boton type="submit" variante="peligro" tamano="xl" className="w-full animate-latido">
+        <Boton type="submit" variante="peligro" tamano="xl" sonido="seleccion" className="w-full animate-latido">
           ¡Jugar!
         </Boton>
       </form>

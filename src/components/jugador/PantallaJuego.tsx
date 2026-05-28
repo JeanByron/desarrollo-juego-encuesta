@@ -5,6 +5,7 @@ import { TablaPuntajes } from "@/components/shared/TablaPuntajes";
 import { useResponder } from "@/hooks/useAcciones";
 import { usePreguntaPublica } from "@/hooks/usePreguntaActual";
 import { useRespuestas } from "@/hooks/useRespuestas";
+import { useSonidos } from "@/hooks/useSonidos";
 import type { Jugador, Partida } from "@/types/database";
 import { cn, ordinal } from "@/lib/utils";
 
@@ -18,6 +19,7 @@ export function PantallaJuego({ partida, yo, jugadores }: Props) {
   const { data: pregunta } = usePreguntaPublica(partida.pregunta_actual_id);
   const { data: respuestas = [] } = useRespuestas(partida.id, partida.pregunta_actual_id);
   const responder = useResponder();
+  const { reproducir } = useSonidos();
   const [yaPulse, setYaPulse] = useState(false);
 
   // Cada vez que cambia la pregunta, se "rearma" el botón.
@@ -31,6 +33,7 @@ export function PantallaJuego({ partida, yo, jugadores }: Props) {
 
   const onResponder = () => {
     if (bloqueado || !partida.pregunta_actual_id) return;
+    reproducir("seleccion"); // ¡buzzer!
     setYaPulse(true); // optimista: bloqueo el botón al instante
     responder.mutate(
       {
@@ -74,7 +77,7 @@ export function PantallaJuego({ partida, yo, jugadores }: Props) {
             "boton-gigante",
             bloqueado
               ? "bg-marca-verde cursor-not-allowed"
-              : "bg-marca-rojo hover:bg-red-600 animate-latido"
+              : "bg-simpson-naranja hover:brightness-105 animate-latido"
           )}
         >
           {bloqueado ? (

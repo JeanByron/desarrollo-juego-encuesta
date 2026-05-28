@@ -5,6 +5,7 @@ import { Avatar } from "@/components/shared/Avatar";
 import { PERSONAJES } from "@/data/personajes";
 import type { Jugador } from "@/types/database";
 import { cn } from "@/lib/utils";
+import { useSonidos } from "@/hooks/useSonidos";
 
 interface Props {
   nombre: string;
@@ -17,6 +18,7 @@ interface Props {
 export function SeleccionPersonaje({ nombre, jugadores, cargando, onElegir, onVolver }: Props) {
   const [seleccion, setSeleccion] = useState<string | null>(null);
   const tomados = new Set(jugadores.map((j) => j.avatar));
+  const { reproducir } = useSonidos();
 
   return (
     <Tarjeta className="space-y-6">
@@ -35,12 +37,17 @@ export function SeleccionPersonaje({ nombre, jugadores, cargando, onElegir, onVo
               key={p.id}
               type="button"
               disabled={ocupado}
-              onClick={() => setSeleccion(p.id)}
+              onClick={() => {
+                setSeleccion(p.id);
+                reproducir("seleccion");
+              }}
               className={cn(
-                "flex flex-col items-center gap-1 p-2 rounded-2xl transition-all",
+                "flex flex-col items-center gap-1 p-2 rounded-2xl transition-all cursor-pointer",
                 "border-4",
-                elegido ? "border-marca-rojo scale-105 bg-yellow-50" : "border-transparent",
-                ocupado ? "opacity-30 cursor-not-allowed" : "hover:bg-yellow-50"
+                elegido
+                  ? "border-marca-rojo scale-110 bg-simpson-amarillo/30 shadow-candySm"
+                  : "border-transparent",
+                ocupado ? "opacity-30 cursor-not-allowed" : "hover:bg-simpson-amarillo/20 hover:scale-105"
               )}
             >
               <Avatar avatarId={p.id} tamano="lg" />
@@ -58,6 +65,7 @@ export function SeleccionPersonaje({ nombre, jugadores, cargando, onElegir, onVo
         <Boton
           variante="exito"
           tamano="lg"
+          sonido="seleccion"
           className="flex-[2]"
           disabled={!seleccion || cargando}
           onClick={() => seleccion && onElegir(seleccion)}
