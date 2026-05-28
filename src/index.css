@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: "Nunito", system-ui, sans-serif;
+  background: radial-gradient(circle at 20% 10%, #fef3c7 0%, #fde68a 35%, #fbbf24 100%);
+  color: #1f2937;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* Botón gigantón de "¡Responder!" — usado en pantalla de juego */
+@layer components {
+  .boton-gigante {
+    @apply w-full max-w-md mx-auto select-none rounded-3xl px-8 py-10
+           text-4xl md:text-5xl font-display font-bold text-white
+           shadow-[0_10px_0_rgba(0,0,0,0.15)] active:translate-y-1
+           active:shadow-[0_4px_0_rgba(0,0,0,0.15)] transition-all
+           focus:outline-none focus:ring-4 focus:ring-white/60;
+  }
+
+  .tarjeta {
+    @apply rounded-3xl bg-white/90 backdrop-blur shadow-xl p-6;
+  }
+}
