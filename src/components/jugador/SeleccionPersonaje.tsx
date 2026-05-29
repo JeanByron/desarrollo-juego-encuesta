@@ -3,21 +3,18 @@ import { Tarjeta } from "@/components/shared/Tarjeta";
 import { Boton } from "@/components/shared/Boton";
 import { Avatar } from "@/components/shared/Avatar";
 import { PERSONAJES } from "@/data/personajes";
-import type { Jugador } from "@/types/database";
 import { cn } from "@/lib/utils";
 import { useSonidos } from "@/hooks/useSonidos";
 
 interface Props {
   nombre: string;
-  jugadores: Jugador[];                  // para deshabilitar avatares ya tomados
   cargando?: boolean;
   onElegir: (avatarId: string) => void;
   onVolver: () => void;
 }
 
-export function SeleccionPersonaje({ nombre, jugadores, cargando, onElegir, onVolver }: Props) {
+export function SeleccionPersonaje({ nombre, cargando, onElegir, onVolver }: Props) {
   const [seleccion, setSeleccion] = useState<string | null>(null);
-  const tomados = new Set(jugadores.map((j) => j.avatar));
   const { reproducir } = useSonidos();
 
   return (
@@ -30,13 +27,11 @@ export function SeleccionPersonaje({ nombre, jugadores, cargando, onElegir, onVo
 
       <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
         {PERSONAJES.map((p) => {
-          const ocupado = tomados.has(p.id);
           const elegido = seleccion === p.id;
           return (
             <button
               key={p.id}
               type="button"
-              disabled={ocupado}
               onClick={() => {
                 setSeleccion(p.id);
                 reproducir("seleccion");
@@ -46,13 +41,11 @@ export function SeleccionPersonaje({ nombre, jugadores, cargando, onElegir, onVo
                 "border-4 bg-marca-amarillo",
                 elegido
                   ? "border-marca-rojo scale-110 shadow-candy ring-4 ring-simpson-naranja"
-                  : "border-simpson-amarilloOscuro/60 shadow-candySm",
-                ocupado ? "opacity-30 cursor-not-allowed" : "hover:brightness-105"
+                  : "border-simpson-amarilloOscuro/60 shadow-candySm hover:brightness-105"
               )}
             >
               <Avatar avatarId={p.id} tamano="lg" className="group-hover:scale-110 transition-transform duration-300" />
               <span className="font-display font-bold text-sm">{p.nombre}</span>
-              {ocupado && <span className="text-xs text-gray-500">ocupado</span>}
             </button>
           );
         })}

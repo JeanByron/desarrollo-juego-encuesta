@@ -52,7 +52,7 @@ export function Avatar({ avatarId, tamano = "md", flotando, className, style }: 
           className="w-[95%] h-[95%] object-contain object-center pointer-events-none drop-shadow"
         />
       ) : (
-        <span aria-hidden>{personaje?.emoji ?? "❓"}</span>
+        <span aria-hidden>{personaje?.emoji ?? "👤"}</span>
       )}
     </div>
   );

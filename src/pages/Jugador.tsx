@@ -94,7 +94,6 @@ export function JugadorPage() {
       <Layout ancho="estrecho" centrado>
         <SeleccionPersonaje
           nombre={nombreLocal || nombre}
-          jugadores={jugadores}
           cargando={registrando}
           onVolver={() => setPasoLocal("nombre")}
           onElegir={async (avatarId) => {
@@ -111,7 +110,15 @@ export function JugadorPage() {
               .single();
             setRegistrando(false);
             if (error || !data) {
-              setError(error?.message ?? "No se pudo registrar");
+              const esNombreDuplicado =
+                error?.code === "23505" &&
+                error.message.includes("nombre");
+              setError(
+                esNombreDuplicado
+                  ? "Ese nombre ya está en uso, elige otro."
+                  : (error?.message ?? "No se pudo registrar")
+              );
+              if (esNombreDuplicado) setPasoLocal("nombre");
               return;
             }
             setIdentidad({
