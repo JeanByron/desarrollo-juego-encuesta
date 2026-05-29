@@ -39,6 +39,7 @@ export function GestorPreguntas() {
   const [form, setForm] = useState<FormState>(FORM_VACIO);
   const [filtro, setFiltro] = useState("");
   const inputArchivo = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLDivElement>(null);
   const [resultadoImport, setResultadoImport] = useState<string | null>(null);
 
   const editando = !!form.id;
@@ -77,7 +78,7 @@ export function GestorPreguntas() {
     }
   };
 
-  const editar = (p: Pregunta) =>
+  const editar = (p: Pregunta) => {
     setForm({
       id: p.id,
       pregunta: p.pregunta,
@@ -86,6 +87,9 @@ export function GestorPreguntas() {
       nivel: p.nivel,
       activa: p.activa
     });
+    // El formulario está arriba; llevamos la vista hasta él para que se note.
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const onArchivo = async (file: File) => {
     setResultadoImport("Procesando archivo...");
@@ -101,7 +105,7 @@ export function GestorPreguntas() {
 
   return (
     <div className="space-y-6">
-      <Tarjeta className="space-y-4">
+      <Tarjeta ref={formRef} className="space-y-4">
         <h2 className="font-display text-2xl">
           {editando ? "✏️ Editar pregunta" : "➕ Nueva pregunta"}
         </h2>
@@ -137,9 +141,11 @@ export function GestorPreguntas() {
               onChange={(e) => setForm((s) => ({ ...s, nivel: Number(e.target.value) }))}
               className="rounded-2xl border-2 border-yellow-300 px-4 py-3"
             >
-              <option value={1}>Nivel 1 — Fácil</option>
-              <option value={2}>Nivel 2 — Medio</option>
-              <option value={3}>Nivel 3 — Difícil</option>
+              <option value={1}>Nivel 1 — 100 pts</option>
+              <option value={2}>Nivel 2 — 200 pts</option>
+              <option value={3}>Nivel 3 — 300 pts</option>
+              <option value={4}>Nivel 4 — 400 pts</option>
+              <option value={5}>Nivel 5 — 500 pts</option>
             </select>
             <label className="flex items-center gap-2 rounded-2xl border-2 border-yellow-300 px-4 py-3">
               <input
@@ -211,7 +217,7 @@ export function GestorPreguntas() {
                       {p.categoria}
                     </span>
                     <span className="rounded-full bg-marca-morado text-white px-2 py-0.5">
-                      Nivel {p.nivel}
+                      Nivel {p.nivel} · {p.nivel * 100} pts
                     </span>
                     {!p.activa && (
                       <span className="rounded-full bg-gray-300 text-gray-700 px-2 py-0.5">
@@ -225,7 +231,7 @@ export function GestorPreguntas() {
                     ✏️
                   </Boton>
                   <Boton
-                    variante="peligro"
+                    variante="peligroSuave"
                     onClick={() => {
                       if (confirm(`¿Eliminar la pregunta "${p.pregunta.slice(0, 40)}..."?`)) {
                         eliminar.mutate(p.id);

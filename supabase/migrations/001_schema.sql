@@ -54,7 +54,7 @@ create table if not exists public.preguntas (
     pregunta        text not null,
     respuesta       text,              -- visible solo a la profesora
     categoria       text not null default 'General',
-    nivel           int  not null default 1 check (nivel between 1 and 3),
+    nivel           int  not null default 1 check (nivel between 1 and 5),
     activa          boolean not null default true,
     creada_en       timestamptz not null default now()
 );
@@ -120,7 +120,8 @@ for each row execute function public.asignar_orden_respuesta();
 
 -- ---------------------------------------------------------------------------
 -- RPC: registrar_respuesta_correcta(respuesta_id)
--- Marca la respuesta como correcta y suma 1 punto al jugador.
+-- Marca la respuesta como correcta y suma puntos según el nivel de la pregunta:
+-- nivel * 100 (nivel 1 = 100, nivel 2 = 200, ... nivel 5 = 500).
 -- ---------------------------------------------------------------------------
 create or replace function public.registrar_respuesta_correcta(p_respuesta_id uuid)
 returns void
@@ -129,13 +130,13 @@ security definer
 as $$
 declare
     v_jugador uuid;
-    v_partida uuid;
-    v_pregunta uuid;
+    v_nivel   int;
 begin
-    select jugador_id, partida_id, pregunta_id
-      into v_jugador, v_partida, v_pregunta
-      from public.respuestas
-     where id = p_respuesta_id;
+    select r.jugador_id, pr.nivel
+      into v_jugador, v_nivel
+      from public.respuestas r
+      join public.preguntas pr on pr.id = r.pregunta_id
+     where r.id = p_respuesta_id;
 
     if v_jugador is null then
         raise exception 'Respuesta no encontrada';
@@ -146,7 +147,7 @@ begin
      where id = p_respuesta_id;
 
     update public.jugadores
-       set puntos = puntos + 1
+       set puntos = puntos + (coalesce(v_nivel, 1) * 100)
      where id = v_jugador;
 end;
 $$;

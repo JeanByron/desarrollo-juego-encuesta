@@ -2,7 +2,7 @@ import { ButtonHTMLAttributes, forwardRef } from "react";
 import { cn } from "@/lib/utils";
 import { useSonidos, type Sonido } from "@/hooks/useSonidos";
 
-type Variante = "primario" | "exito" | "peligro" | "neutro" | "amarillo";
+type Variante = "primario" | "exito" | "peligro" | "peligroSuave" | "neutro" | "amarillo";
 type Tamano = "md" | "lg" | "xl";
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -18,6 +18,7 @@ const estilosVariante: Record<Variante, string> = {
   primario: "bg-marca-azul hover:brightness-105 text-white border-b-[6px] border-blue-700",
   exito: "bg-marca-verde hover:brightness-105 text-white border-b-[6px] border-green-700",
   peligro: "bg-simpson-naranja hover:brightness-105 text-white border-b-[6px] border-simpson-naranjaOscuro",
+  peligroSuave: "bg-red-400 hover:brightness-105 text-white border-b-[6px] border-red-500",
   neutro: "bg-white hover:bg-gray-50 text-gray-800 border-b-[6px] border-gray-300",
   amarillo: "bg-marca-amarillo hover:brightness-105 text-simpson-tinta border-b-[6px] border-simpson-amarilloOscuro"
 };

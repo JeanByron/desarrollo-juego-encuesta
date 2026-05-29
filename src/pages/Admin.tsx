@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, Route, Routes } from "react-router-dom";
+import { Link, Route, Routes, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/shared/Layout";
 import { Tarjeta } from "@/components/shared/Tarjeta";
 import { Boton } from "@/components/shared/Boton";
@@ -9,7 +9,8 @@ import { PantallaFinalAdmin } from "@/components/admin/PantallaFinalAdmin";
 import { GestorPreguntas } from "@/components/admin/GestorPreguntas";
 import { usePartidaActiva } from "@/hooks/usePartidaActiva";
 import { useJugadores } from "@/hooks/useJugadores";
-import { useAvanzarPregunta, useReiniciarPartida } from "@/hooks/useAcciones";
+import { useAvanzarPregunta, useReiniciarPartida, useVaciarDatosPartida } from "@/hooks/useAcciones";
+import { queryClient } from "@/lib/queryClient";
 
 export function AdminPage() {
   return (
@@ -33,11 +34,31 @@ function NavAdmin({ titulo }: { titulo: string }) {
 }
 
 function AdminPartida() {
+  const navigate = useNavigate();
   const { data: partida, isLoading } = usePartidaActiva();
   const { data: jugadores = [] } = useJugadores(partida?.id);
   const avanzar = useAvanzarPregunta();
   const reiniciar = useReiniciarPartida();
+  const vaciar = useVaciarDatosPartida();
   const [iniciando, setIniciando] = useState(false);
+
+  // Termina la partida: vacía los datos de juego en la BD (conservando el banco
+  // de preguntas), limpia la caché de la app y vuelve al menú principal.
+  const onTerminar = () => {
+    if (
+      !confirm(
+        "¿Terminar la partida? Se borrarán los datos de juego (jugadores, respuestas y partidas) " +
+          "para liberar memoria. El banco de preguntas se conserva. Todos volverán al menú principal."
+      )
+    )
+      return;
+    vaciar.mutate(undefined, {
+      onSuccess: () => {
+        queryClient.clear(); // libera la caché en memoria
+        navigate("/");
+      }
+    });
+  };
 
   if (isLoading) {
     return (
@@ -97,8 +118,8 @@ function AdminPartida() {
         <PantallaFinalAdmin
           partida={partida}
           jugadores={jugadores}
-          cargando={reiniciar.isPending}
-          onNuevaPartida={() => reiniciar.mutate()}
+          terminando={vaciar.isPending}
+          onTerminar={onTerminar}
         />
       )}
     </Layout>

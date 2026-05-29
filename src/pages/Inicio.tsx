@@ -48,9 +48,6 @@ export function Inicio() {
               </Boton>
             </Link>
           </div>
-          <p className="text-xs text-center text-gray-500 font-bold">
-            Versión web · funciona en celular, tablet y computador
-          </p>
         </Tarjeta>
       </Layout>
   );

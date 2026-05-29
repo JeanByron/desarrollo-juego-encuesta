@@ -48,6 +48,21 @@ export function useFinalizarPartida() {
   });
 }
 
+// Vacía los datos de juego: borra TODAS las partidas; por las claves foráneas
+// ON DELETE CASCADE se eliminan también jugadores, respuestas y partida_preguntas.
+// El banco de preguntas (tabla `preguntas`) se conserva intacto.
+export function useVaciarDatosPartida() {
+  return useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("partidas")
+        .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000"); // filtro que matchea todas las filas
+      if (error) throw error;
+    }
+  });
+}
+
 export function useReiniciarPartida() {
   return useMutation({
     mutationFn: async () => {

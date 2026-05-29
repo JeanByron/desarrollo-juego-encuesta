@@ -1,6 +1,8 @@
-import { HTMLAttributes } from "react";
+import { forwardRef, HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
-export function Tarjeta({ className, ...rest }: HTMLAttributes<HTMLDivElement>) {
-  return <div {...rest} className={cn("tarjeta animate-pop", className)} />;
-}
+export const Tarjeta = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
+  function Tarjeta({ className, ...rest }, ref) {
+    return <div ref={ref} {...rest} className={cn("tarjeta animate-pop", className)} />;
+  }
+);

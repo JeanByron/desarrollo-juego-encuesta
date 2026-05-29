@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/shared/Layout";
 import { Tarjeta } from "@/components/shared/Tarjeta";
 import { PantallaNombre } from "@/components/jugador/PantallaNombre";
@@ -12,6 +13,7 @@ import { usePlayerStore } from "@/store/usePlayerStore";
 import { supabase } from "@/lib/supabase";
 
 export function JugadorPage() {
+  const navigate = useNavigate();
   const { data: partida, isLoading } = usePartidaActiva();
   const { data: jugadores = [] } = useJugadores(partida?.id);
   const { jugadorId, nombre, avatar, partidaId, setIdentidad, limpiar } = usePlayerStore();
@@ -27,6 +29,15 @@ export function JugadorPage() {
     if (partidaId && partidaId !== partida.id) return null;
     return jugadores.find((j) => j.id === jugadorId) ?? null;
   }, [jugadorId, partidaId, partida, jugadores]);
+
+  // Si la profesora terminó la partida y vació la BD (ya no hay ninguna partida)
+  // y este dispositivo tenía identidad de jugador, lo devolvemos al menú principal.
+  useEffect(() => {
+    if (!isLoading && !partida && jugadorId) {
+      limpiar();
+      navigate("/");
+    }
+  }, [isLoading, partida, jugadorId, limpiar, navigate]);
 
   if (isLoading) {
     return (
