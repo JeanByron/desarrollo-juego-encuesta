@@ -1,19 +1,18 @@
 """
-Convierte una imagen con fondo blanco (JFIF/JPG) en un PNG con fondo transparente,
-recortado y reescalado para servir como avatar del juego.
-
-Pasos:
-  1. Carga la imagen como RGBA.
-  2. Flood-fill desde las 4 esquinas con tolerancia → el fondo blanco contiguo
-     se vuelve alpha=0. Esto conserva blancos internos (ojos, dientes, etc.).
-  3. Recorta al bounding box del contenido visible.
-  4. Centra en un lienzo cuadrado con padding mínimo → el círculo del avatar
-     queda simétrico.
-  5. Reescala a TAMANO (por defecto 512) preservando proporciones y guarda PNG
-     optimizado.
+Procesa una imagen de personaje (JFIF, JPG o PNG) para servir como avatar:
+  1. Si la entrada tiene fondo blanco (poca transparencia), lo elimina con
+     flood-fill desde múltiples puntos del borde. Si ya viene con alpha
+     significativo (PNG transparente), se salta este paso.
+  2. Recorta al bounding box del contenido visible.
+  3. Centra en lienzo cuadrado con padding.
+  4. Reescala a TAMANO (720 por defecto) y guarda PNG-8 paletizado.
 
 Uso:
-  python scripts/remover_fondo.py <entrada> <salida> [--tamano 512] [--thresh 30]
+  python scripts/remover_fondo.py <entrada> <salida>
+  python scripts/remover_fondo.py <entrada> <salida> --tamano 720 --thresh 20
+
+Procesar todo en bloque:
+  python scripts/remover_fondo.py --batch
 """
 from __future__ import annotations
 
@@ -23,29 +22,77 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 
-def remover_fondo(
+# Mapa fuente -> destino para el modo --batch.
+# Tuplas: (origen, destino, forzar_remover_fondo, padding_ratio).
+# Padding extra (15%) en los stickers de Redbubble (Flanders/Burns) porque la
+# ilustración llega hasta el borde del lienzo y, recortada en círculo, se le
+# perderían las puntas (cabello, mano del "OK", etc.).
+BATCH = [
+    ("personajes/apu.png",                                      "public/personajes/apu.png",      False, 0.06),
+    ("personajes/bart.png",                                     "public/personajes/bart.png",     False, 0.06),
+    ("personajes/homer.png",                                    "public/personajes/homero.png",   False, 0.06),
+    ("personajes/krusty.png",                                   "public/personajes/krusty.png",   False, 0.06),
+    ("personajes/lisa.png",                                     "public/personajes/lisa.png",     False, 0.06),
+    ("personajes/maggie.png",                                   "public/personajes/maggie.png",   False, 0.06),
+    ("personajes/marge.png",                                    "public/personajes/marge.png",    False, 0.06),
+    ("personajes/milhouse.png",                                 "public/personajes/milhouse.png", False, 0.06),
+    ("personajes/moe.png",                                      "public/personajes/moe.png",      False, 0.06),
+    ("personajes/nelson.png",                                   "public/personajes/nelson.png",   False, 0.06),
+    ("personajes/_Okily Dokily!_ Flanders Sticker.jfif",        "public/personajes/flanders.png", True,  0.18),
+    ("personajes/pan berns.jfif",                               "public/personajes/burns.png",    True,  0.18),
+]
+
+
+def tiene_transparencia(img: Image.Image, umbral_pct: float = 5.0) -> bool:
+    """True si más del umbral_pct de píxeles ya tienen alpha < 250."""
+    if img.mode != "RGBA":
+        return False
+    alpha = img.split()[3]
+    total = alpha.size[0] * alpha.size[1]
+    transparentes = sum(1 for px in alpha.getdata() if px < 250)
+    return (transparentes / total) * 100 > umbral_pct
+
+
+def puntos_de_borde(w: int, h: int) -> list[tuple[int, int]]:
+    """4 esquinas + 4 puntos medios de cada borde = 8 semillas para flood-fill."""
+    return [
+        (0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1),
+        (w // 2, 0), (w // 2, h - 1), (0, h // 2), (w - 1, h // 2),
+    ]
+
+
+def remover_fondo_blanco(img: Image.Image, thresh: int) -> Image.Image:
+    out = img.copy()
+    for pt in puntos_de_borde(*out.size):
+        # Si el punto inicial ya es transparente o muy oscuro, floodfill no
+        # hace nada útil — lo verificamos antes para no tirar errores.
+        px = out.getpixel(pt)
+        if len(px) == 4 and px[3] == 0:
+            continue
+        if sum(px[:3]) < 600:  # ese punto no parece fondo claro
+            continue
+        ImageDraw.floodfill(out, pt, (255, 255, 255, 0), thresh=thresh)
+    return out
+
+
+def procesar(
     entrada: Path,
     salida: Path,
-    tamano: int = 512,
-    thresh: int = 30,
-    padding_ratio: float = 0.06,
+    tamano: int = 720,
+    thresh: int = 20,
+    padding_ratio: float = 0.08,
+    forzar_remover: bool = False,
 ) -> None:
     img = Image.open(entrada).convert("RGBA")
-    w, h = img.size
 
-    # Flood-fill desde las 4 esquinas con (R,G,B,0). thresh controla cuánta
-    # diferencia de color admite respecto al píxel inicial.
-    for corner in [(0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1)]:
-        ImageDraw.floodfill(img, corner, (255, 255, 255, 0), thresh=thresh)
+    if forzar_remover or not tiene_transparencia(img):
+        img = remover_fondo_blanco(img, thresh)
 
-    # Recortar al contenido visible (ignora alpha=0).
     bbox = img.getbbox()
     if bbox is None:
-        raise RuntimeError("La imagen quedó completamente transparente — sube el --thresh")
+        raise RuntimeError(f"{entrada}: la imagen quedó completamente transparente, sube --thresh")
     recortado = img.crop(bbox)
 
-    # Centrar en lienzo cuadrado con un pequeño padding para que el círculo
-    # del avatar no recorte cabezas/manos.
     cw, ch = recortado.size
     lado = max(cw, ch)
     pad = int(lado * padding_ratio)
@@ -53,28 +100,44 @@ def remover_fondo(
     cuadrado = Image.new("RGBA", (cuadrado_lado, cuadrado_lado), (0, 0, 0, 0))
     cuadrado.paste(recortado, ((cuadrado_lado - cw) // 2, (cuadrado_lado - ch) // 2), recortado)
 
-    # Reescalar a la resolución de avatar.
     final = cuadrado.resize((tamano, tamano), Image.LANCZOS)
 
-    # Paletizar a 96 colores conservando transparencia → PNG-8, ~3-5x más liviano
-    # que PNG-24. Para ilustraciones tipo cartoon la diferencia visual es nula.
-    # Image.FASTOCTREE soporta RGBA y mantiene un índice transparente.
+    # PNG-8 paletizado (96 colores) con preservación de transparencia.
     paleta = final.quantize(colors=96, method=Image.Quantize.FASTOCTREE, dither=Image.Dither.NONE)
 
     salida.parent.mkdir(parents=True, exist_ok=True)
     paleta.save(salida, format="PNG", optimize=True)
-    # Evitamos caracteres unicode en el print para no chocar con cp1252 (Windows).
-    print(f"{entrada.name} -> {salida}  ({final.size[0]}x{final.size[1]}, {salida.stat().st_size // 1024} KB)")
+
+    kb = salida.stat().st_size // 1024
+    print(f"{entrada.name:55s} -> {salida.name:18s} ({final.size[0]}px, {kb}KB)")
 
 
 def main() -> None:
     p = argparse.ArgumentParser()
-    p.add_argument("entrada", type=Path)
-    p.add_argument("salida", type=Path)
-    p.add_argument("--tamano", type=int, default=512)
-    p.add_argument("--thresh", type=int, default=30)
+    p.add_argument("entrada", type=Path, nargs="?")
+    p.add_argument("salida", type=Path, nargs="?")
+    p.add_argument("--tamano", type=int, default=720)
+    p.add_argument("--thresh", type=int, default=20)
+    p.add_argument("--padding", type=float, default=0.08)
+    p.add_argument("--forzar-remover", action="store_true")
+    p.add_argument("--batch", action="store_true",
+                   help="Procesa los 12 personajes desde la carpeta personajes/")
     args = p.parse_args()
-    remover_fondo(args.entrada, args.salida, tamano=args.tamano, thresh=args.thresh)
+
+    if args.batch:
+        for src, dst, forzar, padding in BATCH:
+            src_p, dst_p = Path(src), Path(dst)
+            if not src_p.exists():
+                print(f"omitido (no existe): {src}", file=sys.stderr)
+                continue
+            procesar(src_p, dst_p, tamano=args.tamano, thresh=args.thresh,
+                     padding_ratio=padding, forzar_remover=forzar)
+        return
+
+    if not args.entrada or not args.salida:
+        p.error("entrada y salida son obligatorios (o usa --batch)")
+    procesar(args.entrada, args.salida, tamano=args.tamano, thresh=args.thresh,
+             padding_ratio=args.padding, forzar_remover=args.forzar_remover)
 
 
 if __name__ == "__main__":
