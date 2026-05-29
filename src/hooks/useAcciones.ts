@@ -63,6 +63,17 @@ export function useVaciarDatosPartida() {
   });
 }
 
+// Expulsa a un jugador concreto (la profesora). La lista se refresca sola por
+// la suscripción realtime de useJugadores.
+export function useExpulsarJugador() {
+  return useMutation({
+    mutationFn: async (jugadorId: string) => {
+      const { error } = await supabase.from("jugadores").delete().eq("id", jugadorId);
+      if (error) throw error;
+    }
+  });
+}
+
 export function useReiniciarPartida() {
   return useMutation({
     mutationFn: async () => {

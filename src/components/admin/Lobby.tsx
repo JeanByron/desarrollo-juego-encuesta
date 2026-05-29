@@ -1,6 +1,7 @@
 import { Tarjeta } from "@/components/shared/Tarjeta";
 import { Boton } from "@/components/shared/Boton";
 import { Avatar } from "@/components/shared/Avatar";
+import { useExpulsarJugador } from "@/hooks/useAcciones";
 import type { Jugador, Partida } from "@/types/database";
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function Lobby({ partida, jugadores, cargando, onIniciar, onReiniciar }: Props) {
+  const expulsar = useExpulsarJugador();
   return (
     <div className="space-y-6">
       <Tarjeta className="text-center space-y-4">
@@ -61,7 +63,19 @@ export function Lobby({ partida, jugadores, cargando, onIniciar, onReiniciar }: 
                   <p className="font-bold truncate">{j.nombre}</p>
                   <p className="text-xs text-gray-500 capitalize">{j.estado}</p>
                 </div>
-                <span className="text-xs text-marca-verde font-bold">●</span>
+                <Boton
+                  variante="peligroSuave"
+                  tamano="md"
+                  title={`Expulsar a ${j.nombre}`}
+                  disabled={expulsar.isPending}
+                  onClick={() => {
+                    if (confirm(`¿Expulsar a ${j.nombre} de la partida?`)) {
+                      expulsar.mutate(j.id);
+                    }
+                  }}
+                >
+                  Expulsar
+                </Boton>
               </li>
             ))}
           </ul>

@@ -2,6 +2,7 @@ import { FormEvent, useState } from "react";
 import { Tarjeta } from "@/components/shared/Tarjeta";
 import { Boton } from "@/components/shared/Boton";
 import { Logo } from "@/components/shared/Logo";
+import { contieneGroseria } from "@/lib/groserias";
 
 interface Props {
   onListo: (nombre: string) => void;
@@ -20,6 +21,10 @@ export function PantallaNombre({ onListo }: Props) {
     }
     if (limpio.length > 20) {
       setError("Demasiado largo, usa un apodo más corto.");
+      return;
+    }
+    if (contieneGroseria(limpio)) {
+      setError("Ese nombre no está permitido. Elige uno apropiado. 🙂");
       return;
     }
     onListo(limpio);
