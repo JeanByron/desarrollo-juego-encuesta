@@ -5,6 +5,7 @@ import { Layout } from "@/components/shared/Layout";
 import { Tarjeta } from "@/components/shared/Tarjeta";
 import { Boton } from "@/components/shared/Boton";
 import { Avatar } from "@/components/shared/Avatar";
+import { LogoEscuela } from "@/components/shared/LogoEscuela";
 import { useSonidos } from "@/hooks/useSonidos";
 
 // Personajes que "asoman" en la portada, cada uno flotando a su ritmo.
@@ -19,9 +20,12 @@ export function Inicio() {
   }, [reproducir]);
 
   return (
-      <Layout ancho="estrecho" className="flex flex-col items-center justify-center min-h-screen gap-6">
-        {/* Fila de personajes flotando sobre la tarjeta */}
-        <div className="flex justify-center -space-x-2">
+    <Layout ancho="estrecho" centrado>
+      <div className="flex flex-col items-center gap-6 w-full">
+        {/* Fila de personajes flotando. El escudo del colegio va en posición
+            absoluta a la izquierda de Bart, para no desplazar los avatares. */}
+        <div className="relative flex justify-center -space-x-2">
+          <LogoEscuela className="absolute right-full top-1/2 -translate-y-1/2 mr-10 h-16 w-16 sm:h-20 sm:w-20" />
           {PORTADA.map((id, i) => (
             <Avatar
               key={id}
@@ -49,6 +53,7 @@ export function Inicio() {
             </Link>
           </div>
         </Tarjeta>
-      </Layout>
+      </div>
+    </Layout>
   );
 }
