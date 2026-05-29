@@ -1,4 +1,4 @@
-import { CSSProperties } from "react";
+import { CSSProperties, useState } from "react";
 import { cn } from "@/lib/utils";
 import { buscarPersonaje } from "@/data/personajes";
 
@@ -20,21 +20,37 @@ const dimensiones: Record<NonNullable<Props["tamano"]>, string> = {
 
 export function Avatar({ avatarId, tamano = "md", flotando, className, style }: Props) {
   const personaje = buscarPersonaje(avatarId);
+  // Si la imagen no carga (404, red caída, etc.) caemos al emoji.
+  const [imagenFallo, setImagenFallo] = useState(false);
+  const mostrarImagen = !!personaje?.imagen && !imagenFallo;
+
   return (
     <div
       style={style}
       className={cn(
-        "rounded-full flex items-center justify-center select-none",
+        "rounded-full overflow-hidden flex items-center justify-center select-none",
         "shadow-candySm ring-4 ring-white transition-transform duration-200",
         "hover:scale-110 hover:animate-meneo",
-        personaje?.color ?? "bg-gray-300",
+        // Fondo SIEMPRE amarillo (Simpson) detrás del personaje en lugar del color por personaje.
+        "bg-marca-amarillo",
         dimensiones[tamano],
         flotando && "animate-flotar",
         className
       )}
       title={personaje?.nombre}
     >
-      <span aria-hidden>{personaje?.emoji ?? "❓"}</span>
+      {mostrarImagen ? (
+        <img
+          src={personaje!.imagen}
+          alt={personaje!.nombre}
+          loading="lazy"
+          draggable={false}
+          onError={() => setImagenFallo(true)}
+          className="w-full h-full object-cover object-top pointer-events-none"
+        />
+      ) : (
+        <span aria-hidden>{personaje?.emoji ?? "❓"}</span>
+      )}
     </div>
   );
 }

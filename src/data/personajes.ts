@@ -1,28 +1,29 @@
 // =============================================================================
 // Catálogo de personajes inspirados en Los Simpson.
-// Usamos un emoji como representación visual sencilla. Si más adelante quieres
-// imágenes propias, basta con cambiar el campo `emoji` por `imagen: string`
-// y guardarlas en /public/personajes/<id>.png.
+// `id` se guarda en jugadores.avatar (Postgres). NO renombrar ids ya en uso,
+// porque rompería el constraint unique(partida_id, avatar) de partidas pasadas.
+// La imagen vive en /public/personajes/<id>.png (servida estática por Vite).
 // =============================================================================
 
 export interface Personaje {
-  id: string;       // se guarda en la columna jugadores.avatar
+  id: string;
   nombre: string;
-  emoji: string;
-  color: string;    // tailwind bg-... para la tarjeta
+  emoji: string;            // fallback si la imagen no carga
+  imagen: string;           // ruta pública (PNG con fondo transparente)
+  color: string;            // tailwind bg-... (acento/borde del personaje)
 }
 
 export const PERSONAJES: Personaje[] = [
-  { id: "homero",   nombre: "Homero",   emoji: "🍩", color: "bg-marca-amarillo" },
-  { id: "marge",    nombre: "Marge",    emoji: "💙", color: "bg-marca-azul" },
-  { id: "bart",     nombre: "Bart",     emoji: "🛹", color: "bg-marca-rojo" },
-  { id: "lisa",     nombre: "Lisa",     emoji: "🎷", color: "bg-marca-amarillo" },
-  { id: "maggie",   nombre: "Maggie",   emoji: "🍼", color: "bg-marca-rosado" },
-  { id: "milhouse", nombre: "Milhouse", emoji: "🤓", color: "bg-marca-morado" },
-  { id: "nelson",   nombre: "Nelson",   emoji: "😤", color: "bg-marca-rojo" },
-  { id: "moe",      nombre: "Moe",      emoji: "🍺", color: "bg-marca-verde" },
-  { id: "apu",      nombre: "Apu",      emoji: "🛒", color: "bg-marca-morado" },
-  { id: "krusty",   nombre: "Krusty",   emoji: "🤡", color: "bg-marca-rosado" }
+  { id: "homero",   nombre: "Homero",   emoji: "🍩", imagen: "/personajes/homero.png",   color: "bg-marca-amarillo" },
+  { id: "marge",    nombre: "Marge",    emoji: "💙", imagen: "/personajes/marge.png",    color: "bg-marca-azul" },
+  { id: "bart",     nombre: "Bart",     emoji: "🛹", imagen: "/personajes/bart.png",     color: "bg-marca-rojo" },
+  { id: "lisa",     nombre: "Lisa",     emoji: "🎷", imagen: "/personajes/lisa.png",     color: "bg-marca-amarillo" },
+  { id: "maggie",   nombre: "Maggie",   emoji: "🍼", imagen: "/personajes/maggie.png",   color: "bg-marca-rosado" },
+  { id: "milhouse", nombre: "Milhouse", emoji: "🤓", imagen: "/personajes/milhouse.png", color: "bg-marca-morado" },
+  { id: "nelson",   nombre: "Nelson",   emoji: "😤", imagen: "/personajes/nelson.png",   color: "bg-marca-rojo" },
+  { id: "moe",      nombre: "Moe",      emoji: "🍺", imagen: "/personajes/moe.png",      color: "bg-marca-verde" },
+  { id: "apu",      nombre: "Apu",      emoji: "🛒", imagen: "/personajes/apu.png",      color: "bg-marca-morado" },
+  { id: "krusty",   nombre: "Krusty",   emoji: "🤡", imagen: "/personajes/krusty.png",   color: "bg-marca-rosado" }
 ];
 
 export function buscarPersonaje(id: string): Personaje | undefined {

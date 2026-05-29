@@ -43,11 +43,11 @@ export function SeleccionPersonaje({ nombre, jugadores, cargando, onElegir, onVo
               }}
               className={cn(
                 "flex flex-col items-center gap-1 p-2 rounded-2xl transition-all cursor-pointer",
-                "border-4",
+                "border-4 bg-marca-amarillo", // fondo amarillo en lugar del blanco
                 elegido
-                  ? "border-marca-rojo scale-110 bg-simpson-amarillo/30 shadow-candySm"
-                  : "border-transparent",
-                ocupado ? "opacity-30 cursor-not-allowed" : "hover:bg-simpson-amarillo/20 hover:scale-105"
+                  ? "border-marca-rojo scale-110 shadow-candy ring-4 ring-simpson-naranja"
+                  : "border-simpson-amarilloOscuro/60 shadow-candySm",
+                ocupado ? "opacity-30 cursor-not-allowed" : "hover:brightness-105 hover:scale-105"
               )}
             >
               <Avatar avatarId={p.id} tamano="lg" />
