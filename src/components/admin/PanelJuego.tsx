@@ -27,7 +27,7 @@ export function PanelJuego({ partida, jugadores }: Props) {
   const correcta = useMarcarCorrecta();
   const incorrecta = useMarcarIncorrecta();
   const finalizar = useFinalizarPartida();
-  const { reproducir } = useSonidos();
+  const { reproducirSecuencia } = useSonidos();
 
   // El turno actual es la primera respuesta cuyo resultado siga 'pendiente'
   // (las marcadas como incorrectas se "saltan" y pasan al siguiente).
@@ -45,7 +45,7 @@ export function PanelJuego({ partida, jugadores }: Props) {
     if (!turnoActual) return;
     correcta.mutate(turnoActual.id, {
       onSuccess: () => {
-        reproducir("exito");
+        reproducirSecuencia(["acertado", "risa_acertada"]);
         // Cargar siguiente pregunta automáticamente
         avanzar.mutate(partida.id);
       }
@@ -55,7 +55,7 @@ export function PanelJuego({ partida, jugadores }: Props) {
   const onIncorrecta = () => {
     if (!turnoActual) return;
     incorrecta.mutate(turnoActual.id, {
-      onSuccess: () => reproducir("pato")
+      onSuccess: () => reproducirSecuencia(["fallado", "pregunta_fallada"])
     });
   };
 
