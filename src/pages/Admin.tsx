@@ -23,7 +23,7 @@ export function AdminPage() {
 
 function NavAdmin({ titulo }: { titulo: string }) {
   return (
-    <header className="flex flex-wrap items-center justify-between gap-2 mb-4">
+    <header className="flex flex-wrap items-center justify-between gap-2 mb-4 pr-14">
       <h1 className="font-display text-2xl">{titulo}</h1>
       <nav className="flex gap-2 text-sm">
         <Link to="/admin" className="underline">Partida</Link>

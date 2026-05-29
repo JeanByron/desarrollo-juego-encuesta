@@ -5,7 +5,6 @@ import { Inicio } from "@/pages/Inicio";
 import { JugadorPage } from "@/pages/Jugador";
 import { AdminPage } from "@/pages/Admin";
 import { Nubes } from "@/components/shared/Nubes";
-import { BotonMute } from "@/components/shared/BotonMute";
 
 export default function App() {
   return (
@@ -13,8 +12,6 @@ export default function App() {
       <BrowserRouter>
         {/* Cielo con nubes a la deriva, detrás de todas las pantallas */}
         <Nubes />
-        {/* Botón de silenciar sonidos, visible en todas las pantallas */}
-        <BotonMute />
         <Routes>
           <Route path="/" element={<Inicio />} />
           <Route path="/jugar" element={<JugadorPage />} />
