@@ -5,6 +5,7 @@ import { Inicio } from "@/pages/Inicio";
 import { JugadorPage } from "@/pages/Jugador";
 import { AdminPage } from "@/pages/Admin";
 import { Nubes } from "@/components/shared/Nubes";
+import { MusicaFondo } from "@/components/shared/MusicaFondo";
 
 export default function App() {
   return (
@@ -12,6 +13,8 @@ export default function App() {
       <BrowserRouter>
         {/* Cielo con nubes a la deriva, detrás de todas las pantallas */}
         <Nubes />
+        {/* Música de fondo en bucle (a bajo volumen) */}
+        <MusicaFondo />
         <Routes>
           <Route path="/" element={<Inicio />} />
           <Route path="/jugar" element={<JugadorPage />} />

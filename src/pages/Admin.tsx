@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, Route, Routes, useNavigate } from "react-router-dom";
+import { Link, Route, Routes } from "react-router-dom";
 import { Layout } from "@/components/shared/Layout";
 import { Tarjeta } from "@/components/shared/Tarjeta";
 import { Boton } from "@/components/shared/Boton";
@@ -25,16 +25,19 @@ function NavAdmin({ titulo }: { titulo: string }) {
   return (
     <header className="flex flex-wrap items-center justify-between gap-2 mb-4 pr-14">
       <h1 className="font-display text-2xl">{titulo}</h1>
-      <nav className="flex gap-2 text-sm">
-        <Link to="/admin" className="underline">Partida</Link>
-        <Link to="/admin/preguntas" className="underline">Preguntas</Link>
+      <nav className="flex gap-2">
+        <Link to="/admin">
+          <Boton variante="amarillo" tamano="md">🎮 Partida</Boton>
+        </Link>
+        <Link to="/admin/preguntas">
+          <Boton variante="primario" tamano="md">📝 Preguntas</Boton>
+        </Link>
       </nav>
     </header>
   );
 }
 
 function AdminPartida() {
-  const navigate = useNavigate();
   const { data: partida, isLoading } = usePartidaActiva();
   const { data: jugadores = [] } = useJugadores(partida?.id);
   const avanzar = useAvanzarPregunta();
@@ -43,7 +46,7 @@ function AdminPartida() {
   const [iniciando, setIniciando] = useState(false);
 
   // Termina la partida: vacía los datos de juego en la BD (conservando el banco
-  // de preguntas), limpia la caché de la app y vuelve al menú principal.
+  // de preguntas), limpia la caché de la app y recarga el panel de la profesora.
   const onTerminar = () => {
     if (
       !confirm(
@@ -55,7 +58,7 @@ function AdminPartida() {
     vaciar.mutate(undefined, {
       onSuccess: () => {
         queryClient.clear(); // libera la caché en memoria
-        navigate("/");
+        window.location.href = "https://desarrollo-juego-encuesta.vercel.app/admin";
       }
     });
   };

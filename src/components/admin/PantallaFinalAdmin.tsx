@@ -25,7 +25,17 @@ export function PantallaFinalAdmin({ partida, jugadores, terminando, onTerminar 
         backgroundColor: "#FFFBEC", // crema, igual que las tarjetas
         scale: 2, // mayor resolución
         useCORS: true,
-        logging: false
+        logging: false,
+        // html2canvas clona el DOM y reinicia las animaciones CSS (que arrancan
+        // en opacidad 0), por eso la captura salía desvaída. Las desactivamos en
+        // el clon para que se vea con colores plenos.
+        onclone: (_doc, el) => {
+          el.style.animation = "none";
+          el.querySelectorAll<HTMLElement>("*").forEach((n) => {
+            n.style.animation = "none";
+            n.style.transition = "none";
+          });
+        }
       });
       const enlace = document.createElement("a");
       const fecha = new Date().toISOString().slice(0, 10);

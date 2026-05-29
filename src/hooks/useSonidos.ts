@@ -31,6 +31,15 @@ export type Sonido =
 // Volumen general (0–1). Moderado a propósito.
 const VOLUMEN = 0.4;
 
+// Volúmenes específicos: los sonidos de respuesta correcta/incorrecta más bajos
+// para no molestar (suenan en los parlantes del aula).
+const VOLUMEN_POR_SONIDO: Partial<Record<Sonido, number>> = {
+  acertado: 0.22,
+  risa_acertada: 0.22,
+  fallado: 0.22,
+  pregunta_fallada: 0.22
+};
+
 // Sonidos que existen como archivo en /public/sonidos/. El resto son cues de
 // interfaz que se sintetizan (así evitamos pedir un .mp3 inexistente).
 const CON_ARCHIVO: ReadonlySet<Sonido> = new Set<Sonido>([
@@ -127,7 +136,7 @@ function sintetizar(nombre: Sonido) {
 // (o si no se puede reproducir), para poder encadenar secuencias.
 function reproducirArchivo(nombre: Sonido, alTerminar?: () => void) {
   const audio = new Audio(`/sonidos/${nombre}.mp3`);
-  audio.volume = VOLUMEN;
+  audio.volume = VOLUMEN_POR_SONIDO[nombre] ?? VOLUMEN;
   activos.add(audio);
 
   let avanzado = false;

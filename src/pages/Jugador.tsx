@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/shared/Layout";
 import { Tarjeta } from "@/components/shared/Tarjeta";
 import { PantallaNombre } from "@/components/jugador/PantallaNombre";
@@ -13,7 +12,6 @@ import { usePlayerStore } from "@/store/usePlayerStore";
 import { supabase } from "@/lib/supabase";
 
 export function JugadorPage() {
-  const navigate = useNavigate();
   const { data: partida, isLoading } = usePartidaActiva();
   const { data: jugadores = [] } = useJugadores(partida?.id);
   const { jugadorId, nombre, avatar, partidaId, setIdentidad, limpiar } = usePlayerStore();
@@ -31,13 +29,13 @@ export function JugadorPage() {
   }, [jugadorId, partidaId, partida, jugadores]);
 
   // Si la profesora terminó la partida y vació la BD (ya no hay ninguna partida)
-  // y este dispositivo tenía identidad de jugador, lo devolvemos al menú principal.
+  // y este dispositivo tenía identidad de jugador, lo devolvemos a /jugar.
   useEffect(() => {
     if (!isLoading && !partida && jugadorId) {
       limpiar();
-      navigate("/");
+      window.location.href = "https://desarrollo-juego-encuesta.vercel.app/jugar";
     }
-  }, [isLoading, partida, jugadorId, limpiar, navigate]);
+  }, [isLoading, partida, jugadorId, limpiar]);
 
   if (isLoading) {
     return (

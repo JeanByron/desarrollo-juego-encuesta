@@ -21,18 +21,40 @@ export function PantallaJuego({ partida, yo, jugadores }: Props) {
   const responder = useResponder();
   const { reproducir } = useSonidos();
   const [yaPulse, setYaPulse] = useState(false);
+  // Cuenta atrás (3..1) al aparecer cada pregunta; 0 = pregunta visible.
+  const [cuenta, setCuenta] = useState(0);
+  const preguntaId = partida.pregunta_actual_id;
 
-  // Cada vez que cambia la pregunta, se "rearma" el botón.
+  // Cada vez que cambia la pregunta: rearmamos el botón y lanzamos la cuenta
+  // atrás de 3 segundos para dar tiempo a pensar antes de poder responder.
   useEffect(() => {
     setYaPulse(false);
-  }, [partida.pregunta_actual_id]);
+    if (!preguntaId) {
+      setCuenta(0);
+      return;
+    }
+    setCuenta(3);
+    let n = 3;
+    const id = setInterval(() => {
+      n -= 1;
+      setCuenta(n);
+      if (n <= 0) clearInterval(id);
+    }, 1000);
+    return () => clearInterval(id);
+  }, [preguntaId]);
 
+  // Tic en cada número de la cuenta atrás.
+  useEffect(() => {
+    if (cuenta > 0) reproducir("clic");
+  }, [cuenta, reproducir]);
+
+  const enCuenta = cuenta > 0;
   const miRespuesta = respuestas.find((r) => r.jugador_id === yo.id);
   const bloqueado = yaPulse || !!miRespuesta;
   const ordenEnLista = miRespuesta?.orden_respuesta;
 
   const onResponder = () => {
-    if (bloqueado || !partida.pregunta_actual_id) return;
+    if (enCuenta || bloqueado || !partida.pregunta_actual_id) return;
     reproducir("seleccion"); // ¡buzzer!
     setYaPulse(true); // optimista: bloqueo el botón al instante
     responder.mutate(
@@ -65,27 +87,42 @@ export function PantallaJuego({ partida, yo, jugadores }: Props) {
           )}
         </header>
 
-        <p className="font-display text-2xl md:text-4xl leading-tight min-h-[6rem]">
-          {pregunta?.pregunta ?? "Esperando pregunta..."}
-        </p>
+        {enCuenta ? (
+          <div className="py-6 flex flex-col items-center gap-3 min-h-[16rem] justify-center">
+            <p className="font-display text-2xl md:text-3xl">¡Prepárate! 🤔</p>
+            <div
+              key={cuenta}
+              className="animate-pop font-display font-extrabold text-7xl md:text-8xl text-marca-rojo drop-shadow"
+            >
+              {cuenta}
+            </div>
+            <p className="text-gray-600 font-bold">La pregunta aparece en…</p>
+          </div>
+        ) : (
+          <>
+            <p className="font-display text-2xl md:text-4xl leading-tight min-h-[6rem]">
+              {pregunta?.pregunta ?? "Esperando pregunta..."}
+            </p>
 
-        <button
-          type="button"
-          onClick={onResponder}
-          disabled={bloqueado || !partida.pregunta_actual_id}
-          className={cn(
-            "boton-gigante",
-            bloqueado
-              ? "bg-marca-verde cursor-not-allowed"
-              : "bg-simpson-naranja hover:brightness-105 animate-latido"
-          )}
-        >
-          {bloqueado ? (
-            ordenEnLista ? `¡${ordinal(ordenEnLista)}!` : "¡Esperando turno!"
-          ) : (
-            "¡Responder!"
-          )}
-        </button>
+            <button
+              type="button"
+              onClick={onResponder}
+              disabled={bloqueado || !partida.pregunta_actual_id}
+              className={cn(
+                "boton-gigante",
+                bloqueado
+                  ? "bg-marca-verde cursor-not-allowed"
+                  : "bg-simpson-naranja hover:brightness-105 animate-latido"
+              )}
+            >
+              {bloqueado ? (
+                ordenEnLista ? `¡${ordinal(ordenEnLista)}!` : "¡Esperando turno!"
+              ) : (
+                "¡Responder!"
+              )}
+            </button>
+          </>
+        )}
 
         {respuestas.length > 0 && (
           <div className="text-left">
