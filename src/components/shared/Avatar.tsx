@@ -32,7 +32,7 @@ export function Avatar({ avatarId, tamano = "md", flotando, className, style }: 
         "shadow-candySm ring-4 ring-white transition-transform duration-200",
         "hover:scale-110 hover:animate-meneo",
         // Fondo turquesa detrás del personaje (los amarillos como Homero/Bart/Lisa destacan).
-        "bg-teal-400",
+        "bg-teal-700",
         dimensiones[tamano],
         flotando && "animate-flotar",
         className
