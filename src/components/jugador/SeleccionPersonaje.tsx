@@ -47,10 +47,10 @@ export function SeleccionPersonaje({ nombre, jugadores, cargando, onElegir, onVo
                 elegido
                   ? "border-marca-rojo scale-110 shadow-candy ring-4 ring-simpson-naranja"
                   : "border-simpson-amarilloOscuro/60 shadow-candySm",
-                ocupado ? "opacity-30 cursor-not-allowed" : "hover:brightness-105 hover:scale-105"
+                ocupado ? "opacity-30 cursor-not-allowed" : "hover:brightness-105"
               )}
             >
-              <Avatar avatarId={p.id} tamano="lg" className="group-hover:scale-125 transition-transform duration-300" />
+              <Avatar avatarId={p.id} tamano="lg" className="group-hover:scale-110 transition-transform duration-300" />
               <span className="font-display font-bold text-sm">{p.nombre}</span>
               {ocupado && <span className="text-xs text-gray-500">ocupado</span>}
             </button>

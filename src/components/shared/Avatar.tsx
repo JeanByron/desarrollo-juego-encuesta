@@ -49,7 +49,7 @@ export function Avatar({ avatarId, tamano = "md", flotando, className, style }: 
           // object-contain + tamaño 80% deja "aire" alrededor del personaje
           // para que cuerpos enteros (Homero, Marge, Krusty) queden centrados
           // y a la misma escala que los retratos tipo Bart/Lisa.
-          className="w-[80%] h-[80%] object-contain object-center pointer-events-none drop-shadow"
+          className="w-[95%] h-[95%] object-contain object-center pointer-events-none drop-shadow"
         />
       ) : (
         <span aria-hidden>{personaje?.emoji ?? "❓"}</span>
