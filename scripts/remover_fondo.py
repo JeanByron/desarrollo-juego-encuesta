@@ -38,7 +38,7 @@ BATCH = [
     ("personajes/milhouse.png",                                 "public/personajes/milhouse.png", False, 0.06),
     ("personajes/moe.png",                                      "public/personajes/moe.png",      False, 0.06),
     ("personajes/nelson.png",                                   "public/personajes/nelson.png",   False, 0.06),
-    ("personajes/_Okily Dokily!_ Flanders Sticker.jfif",        "public/personajes/flanders.png", True,  0.18),
+    ("personajes/Ned Flanders_.jfif",                           "public/personajes/flanders.png", True,  0.14),
     ("personajes/pan berns.jfif",                               "public/personajes/burns.png",    True,  0.18),
 ]
 
