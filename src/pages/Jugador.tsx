@@ -37,6 +37,34 @@ export function JugadorPage() {
     }
   }, [isLoading, partida, jugadorId, limpiar]);
 
+  // Al cerrar la pestaña/navegador, eliminamos al jugador de la BD para que no
+  // quede "fantasma" en la lista. Usamos fetch con keepalive porque las
+  // peticiones normales se cancelan al descargarse la página. El evento
+  // `pagehide` es el más fiable para cierre/navegación (también en móvil) y NO
+  // se dispara al cambiar de pestaña, así que no expulsa por error.
+  useEffect(() => {
+    if (!jugadorId) return;
+    const onCerrar = () => {
+      const url = import.meta.env.VITE_SUPABASE_URL;
+      const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      if (url && key) {
+        fetch(`${url}/rest/v1/jugadores?id=eq.${jugadorId}`, {
+          method: "DELETE",
+          headers: { apikey: key, Authorization: `Bearer ${key}` },
+          keepalive: true
+        }).catch(() => {});
+      }
+      // Limpiamos la identidad guardada para que al reabrir se registre de nuevo.
+      try {
+        localStorage.removeItem("jugador-cultura-general");
+      } catch {
+        // ignoramos
+      }
+    };
+    window.addEventListener("pagehide", onCerrar);
+    return () => window.removeEventListener("pagehide", onCerrar);
+  }, [jugadorId]);
+
   if (isLoading) {
     return (
       <Layout ancho="estrecho" centrado>
