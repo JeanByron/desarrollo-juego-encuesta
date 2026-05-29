@@ -31,8 +31,8 @@ export function Avatar({ avatarId, tamano = "md", flotando, className, style }: 
         "rounded-full overflow-hidden flex items-center justify-center select-none",
         "shadow-candySm ring-4 ring-white transition-transform duration-200",
         "hover:scale-110 hover:animate-meneo",
-        // Fondo SIEMPRE amarillo (Simpson) detrás del personaje en lugar del color por personaje.
-        "bg-marca-amarillo",
+        // Fondo turquesa detrás del personaje (los amarillos como Homero/Bart/Lisa destacan).
+        "bg-teal-400",
         dimensiones[tamano],
         flotando && "animate-flotar",
         className
@@ -46,7 +46,10 @@ export function Avatar({ avatarId, tamano = "md", flotando, className, style }: 
           loading="lazy"
           draggable={false}
           onError={() => setImagenFallo(true)}
-          className="w-full h-full object-cover object-top pointer-events-none"
+          // object-contain + tamaño 80% deja "aire" alrededor del personaje
+          // para que cuerpos enteros (Homero, Marge, Krusty) queden centrados
+          // y a la misma escala que los retratos tipo Bart/Lisa.
+          className="w-[80%] h-[80%] object-contain object-center pointer-events-none drop-shadow"
         />
       ) : (
         <span aria-hidden>{personaje?.emoji ?? "❓"}</span>
