@@ -44,8 +44,10 @@ export function PantallaJuego({ partida, yo, jugadores }: Props) {
       if (sonadas.current.has(r.id)) continue;
       sonadas.current.add(r.id);
       if (sonidoListo.current) {
-        // Feedback visual (funciona siempre, incluso con sonido muteado)
-        setResultadoVisual(r.resultado === "correcto" ? "correcto" : "incorrecto");
+        // Feedback visual solo para el jugador cuya respuesta fue marcada.
+        if (r.jugador_id === yo.id) {
+          setResultadoVisual(r.resultado === "correcto" ? "correcto" : "incorrecto");
+        }
         // Feedback sonoro (respeta el mute del dispositivo)
         reproducirSecuencia(
           r.resultado === "correcto"
