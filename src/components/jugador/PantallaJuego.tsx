@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Tarjeta } from "@/components/shared/Tarjeta";
 import { Avatar } from "@/components/shared/Avatar";
 import { TablaPuntajes } from "@/components/shared/TablaPuntajes";
@@ -27,11 +27,21 @@ export function PantallaJuego({ partida, yo, jugadores }: Props) {
   const [resultadoVisual, setResultadoVisual] = useState<ResultadoVisual>(null);
   const limpiarOverlay = useCallback(() => setResultadoVisual(null), []);
 
-  // Para que los jugadores TAMBIÉN escuchen los sonidos de acierto/error cuando
-  // la profesora marca una respuesta. Recordamos qué respuestas ya sonaron para
-  // no repetir; en el primer render solo "marcamos" las ya resueltas (sin sonar).
-  const sonadas = useRef<Set<string>>(new Set());
-  const sonidoListo = useRef(false);
+  // IDs de respuestas cuyo resultado ya fue procesado (visual + sonido).
+  // Se reinicia con cada pregunta nueva para no arrastrar IDs de la anterior.
+  const procesadasRef = useRef<Set<string>>(new Set());
+  // Cuando llega la primera carga de datos, inicializamos el set con los
+  // resultados ya existentes (correcto/incorrecto) SIN reproducirlos: así
+  // evitamos que un jugador que abre la página a mitad de partida vea overlays
+  // de respuestas antiguas que ya no le corresponden.
+  const inicializadoRef = useRef(false);
+
+  // Reiniciar al cambiar de pregunta.
+  const preguntaId = partida.pregunta_actual_id;
+  useEffect(() => {
+    procesadasRef.current = new Set();
+    inicializadoRef.current = false;
+  }, [preguntaId]);
 
   // Contador "el siguiente en responder es…" que aparece cuando la profesora
   // marca una respuesta como incorrecta.
@@ -39,39 +49,60 @@ export function PantallaJuego({ partida, yo, jugadores }: Props) {
   const [cuentaSiguiente, setCuentaSiguiente] = useState(0);
 
   useEffect(() => {
+    // Primera carga: marcar resultados existentes como ya vistos (sin mostrarlos).
+    if (!inicializadoRef.current) {
+      for (const r of respuestas) {
+        if (r.resultado === "correcto" || r.resultado === "incorrecto") {
+          procesadasRef.current.add(r.id);
+        }
+      }
+      inicializadoRef.current = true;
+      return;
+    }
+
+    // Cargas siguientes: solo procesar los resultados que son nuevos.
     for (const r of respuestas) {
       if (r.resultado !== "correcto" && r.resultado !== "incorrecto") continue;
-      if (sonadas.current.has(r.id)) continue;
-      sonadas.current.add(r.id);
-      if (sonidoListo.current) {
-        // Feedback visual solo para el jugador cuya respuesta fue marcada.
-        if (r.jugador_id === yo.id) {
-          setResultadoVisual(r.resultado === "correcto" ? "correcto" : "incorrecto");
-        }
-        // Feedback sonoro (respeta el mute del dispositivo)
-        reproducirSecuencia(
-          r.resultado === "correcto"
-            ? ["acertado", "risa_acertada"]
-            : ["fallado", "pregunta_fallada"]
-        );
+      if (procesadasRef.current.has(r.id)) continue;
+      procesadasRef.current.add(r.id);
 
-        // Si es incorrecto, buscar el próximo en turno y mostrar el contador.
-        if (r.resultado === "incorrecto") {
-          const siguiente = respuestas.find(
-            (x) => x.resultado === "pendiente" && x.id !== r.id
-          );
-          const jugSiguiente = siguiente
-            ? jugadores.find((j) => j.id === siguiente.jugador_id) ?? null
-            : null;
-          if (jugSiguiente) {
-            setSiguienteJugador(jugSiguiente);
-            setCuentaSiguiente(3);
-          }
+      // Overlay visual: solo al jugador cuya respuesta fue marcada.
+      if (r.jugador_id === yo.id) {
+        setResultadoVisual(r.resultado === "correcto" ? "correcto" : "incorrecto");
+      }
+
+      // Sonido: todos los dispositivos (respeta su propio mute).
+      reproducirSecuencia(
+        r.resultado === "correcto"
+          ? ["acertado", "risa_acertada"]
+          : ["fallado", "pregunta_fallada"]
+      );
+
+      // Si es incorrecto, mostrar el contador del siguiente jugador.
+      if (r.resultado === "incorrecto") {
+        const siguiente = respuestas.find(
+          (x) => x.resultado === "pendiente" && x.id !== r.id
+        );
+        const jugSiguiente = siguiente
+          ? jugadores.find((j) => j.id === siguiente.jugador_id) ?? null
+          : null;
+        if (jugSiguiente) {
+          setSiguienteJugador(jugSiguiente);
+          setCuentaSiguiente(3);
         }
       }
     }
-    sonidoListo.current = true;
-  }, [respuestas, jugadores, reproducirSecuencia]);
+  }, [respuestas, jugadores, reproducirSecuencia, yo.id]);
+
+  // Jugador cuyo turno está activo ahora (primera respuesta aún pendiente).
+  const turnoActual = useMemo(
+    () => respuestas.find((r) => r.resultado === "pendiente"),
+    [respuestas]
+  );
+  const jugadorEnTurno = turnoActual
+    ? jugadores.find((j) => j.id === turnoActual.jugador_id) ?? null
+    : null;
+  const esMiTurno = turnoActual?.jugador_id === yo.id;
 
   // Cuenta regresiva del "siguiente jugador".
   useEffect(() => {
@@ -90,7 +121,6 @@ export function PantallaJuego({ partida, yo, jugadores }: Props) {
   }, [cuentaSiguiente]);
   // Cuenta atrás (3..1) al aparecer cada pregunta; 0 = pregunta visible.
   const [cuenta, setCuenta] = useState(0);
-  const preguntaId = partida.pregunta_actual_id;
 
   // Cada vez que cambia la pregunta: rearmamos el botón y lanzamos la cuenta
   // atrás de 3 segundos para dar tiempo a pensar antes de poder responder.
@@ -190,6 +220,36 @@ export function PantallaJuego({ partida, yo, jugadores }: Props) {
             <p className="font-display text-2xl md:text-4xl leading-tight min-h-[6rem]">
               {pregunta?.pregunta ?? "Esperando pregunta..."}
             </p>
+
+            {/* Banner de quién responde ahora (visible cuando la profesora evalúa) */}
+            {jugadorEnTurno && !siguienteJugador && (
+              <div
+                className={cn(
+                  "flex items-center justify-center gap-3 rounded-2xl px-4 py-3 animate-pop",
+                  esMiTurno
+                    ? "bg-marca-amarillo border-2 border-simpson-naranja"
+                    : "bg-white/70"
+                )}
+              >
+                {esMiTurno ? (
+                  <p className="font-display font-extrabold text-xl text-marca-rojo animate-latido">
+                    ¡La profesora te está evaluando!
+                  </p>
+                ) : (
+                  <>
+                    <Avatar avatarId={jugadorEnTurno.avatar} tamano="md" />
+                    <div className="text-left">
+                      <p className="text-xs text-gray-500 font-bold uppercase tracking-wide">
+                        Respondiendo ahora
+                      </p>
+                      <p className="font-display font-extrabold text-xl">
+                        {jugadorEnTurno.nombre}
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
 
             <button
               type="button"
