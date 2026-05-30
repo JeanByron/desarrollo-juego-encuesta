@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Tarjeta } from "@/components/shared/Tarjeta";
 import { Avatar } from "@/components/shared/Avatar";
 import { TablaPuntajes } from "@/components/shared/TablaPuntajes";
@@ -6,6 +6,7 @@ import { useResponder } from "@/hooks/useAcciones";
 import { usePreguntaPublica } from "@/hooks/usePreguntaActual";
 import { useRespuestas } from "@/hooks/useRespuestas";
 import { useSonidos } from "@/hooks/useSonidos";
+import { ResultadoOverlay, type ResultadoVisual } from "@/components/shared/ResultadoOverlay";
 import type { Jugador, Partida } from "@/types/database";
 import { cn, ordinal } from "@/lib/utils";
 
@@ -22,6 +23,10 @@ export function PantallaJuego({ partida, yo, jugadores }: Props) {
   const { reproducir, reproducirSecuencia } = useSonidos();
   const [yaPulse, setYaPulse] = useState(false);
 
+  // Estado para el overlay visual de resultado (funciona con o sin sonido).
+  const [resultadoVisual, setResultadoVisual] = useState<ResultadoVisual>(null);
+  const limpiarOverlay = useCallback(() => setResultadoVisual(null), []);
+
   // Para que los jugadores TAMBIÉN escuchen los sonidos de acierto/error cuando
   // la profesora marca una respuesta. Recordamos qué respuestas ya sonaron para
   // no repetir; en el primer render solo "marcamos" las ya resueltas (sin sonar).
@@ -33,6 +38,9 @@ export function PantallaJuego({ partida, yo, jugadores }: Props) {
       if (sonadas.current.has(r.id)) continue;
       sonadas.current.add(r.id);
       if (sonidoListo.current) {
+        // Feedback visual (funciona siempre, incluso con sonido muteado)
+        setResultadoVisual(r.resultado === "correcto" ? "correcto" : "incorrecto");
+        // Feedback sonoro (respeta el mute del dispositivo)
         reproducirSecuencia(
           r.resultado === "correcto"
             ? ["acertado", "risa_acertada"]
@@ -92,6 +100,7 @@ export function PantallaJuego({ partida, yo, jugadores }: Props) {
 
   return (
     <div className="space-y-6">
+      <ResultadoOverlay resultado={resultadoVisual} onTerminado={limpiarOverlay} />
       <Tarjeta className="space-y-6 text-center">
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-2">

@@ -1,10 +1,11 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import html2canvas from "html2canvas";
 import * as XLSX from "xlsx";
 import { Tarjeta } from "@/components/shared/Tarjeta";
 import { Boton } from "@/components/shared/Boton";
 import { Podio } from "@/components/shared/Podio";
 import { TablaPuntajes } from "@/components/shared/TablaPuntajes";
+import { ConfettiCelebration } from "@/components/shared/ConfettiCelebration";
 import type { Jugador, Partida } from "@/types/database";
 
 interface Props {
@@ -17,6 +18,13 @@ interface Props {
 export function PantallaFinalAdmin({ partida, jugadores, terminando, onTerminar }: Props) {
   const podioRef = useRef<HTMLDivElement>(null);
   const [descargando, setDescargando] = useState(false);
+
+  // Confeti se muestra durante la animación de revelación del podio (~4 s).
+  const [confeti, setConfeti] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setConfeti(false), 5000);
+    return () => clearTimeout(t);
+  }, []);
 
   const descargarPantallazo = async () => {
     if (!podioRef.current) return;
@@ -66,9 +74,14 @@ export function PantallaFinalAdmin({ partida, jugadores, terminando, onTerminar 
 
   return (
     <div className="space-y-6">
+      {/* Confeti celebratorio durante la revelación del podio */}
+      {confeti && <ConfettiCelebration />}
+
       {/* Tarjeta que se captura en el pantallazo */}
       <Tarjeta ref={podioRef} className="text-center space-y-4">
-        <h2 className="font-display text-3xl text-marca-rojo">🏆 ¡Ganadores!</h2>
+        <h2 className="font-display text-3xl md:text-5xl text-marca-rojo animate-pop">
+          🏆 ¡Ganadores! 🏆
+        </h2>
         <Podio jugadores={jugadores} />
         <p className="text-sm text-gray-500">
           {partida.fecha_fin
@@ -112,3 +125,4 @@ export function PantallaFinalAdmin({ partida, jugadores, terminando, onTerminar 
     </div>
   );
 }
+

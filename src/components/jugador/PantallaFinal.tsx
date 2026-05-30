@@ -1,7 +1,9 @@
+import { useEffect, useState } from "react";
 import { Tarjeta } from "@/components/shared/Tarjeta";
 import { Boton } from "@/components/shared/Boton";
 import { Podio } from "@/components/shared/Podio";
 import { TablaPuntajes } from "@/components/shared/TablaPuntajes";
+import { ConfettiCelebration } from "@/components/shared/ConfettiCelebration";
 import type { Jugador } from "@/types/database";
 import { ordinal } from "@/lib/utils";
 
@@ -14,10 +16,19 @@ interface Props {
 export function PantallaFinal({ yo, jugadores, onSalir }: Props) {
   const miPosicion = jugadores.findIndex((j) => j.id === yo.id) + 1;
 
+  // Confeti se muestra durante la animación de revelación del podio (~4 s).
+  const [confeti, setConfeti] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setConfeti(false), 5000);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
     <div className="space-y-6">
+      {confeti && <ConfettiCelebration />}
+
       <Tarjeta className="text-center space-y-4">
-        <h2 className="font-display text-3xl text-marca-rojo">¡Fin del juego! 🎉</h2>
+        <h2 className="font-display text-3xl text-marca-rojo animate-pop">¡Fin del juego! 🎉</h2>
         <p className="font-display text-xl">Estos son los ganadores:</p>
 
         <Podio jugadores={jugadores} destacarId={yo.id} />
@@ -39,3 +50,4 @@ export function PantallaFinal({ yo, jugadores, onSalir }: Props) {
     </div>
   );
 }
+

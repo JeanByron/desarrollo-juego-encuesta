@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Tarjeta } from "@/components/shared/Tarjeta";
 import { Boton } from "@/components/shared/Boton";
 import { Avatar } from "@/components/shared/Avatar";
 import { TablaPuntajes } from "@/components/shared/TablaPuntajes";
+import { ResultadoOverlay, type ResultadoVisual } from "@/components/shared/ResultadoOverlay";
 import { cn, ordinal } from "@/lib/utils";
 import { useSonidos } from "@/hooks/useSonidos";
 import { usePreguntaCompleta } from "@/hooks/usePreguntaActual";
@@ -28,6 +29,10 @@ export function PanelJuego({ partida, jugadores }: Props) {
   const incorrecta = useMarcarIncorrecta();
   const finalizar = useFinalizarPartida();
   const { reproducirSecuencia } = useSonidos();
+
+  // Estado para el overlay visual de resultado (funciona con o sin sonido).
+  const [resultadoVisual, setResultadoVisual] = useState<ResultadoVisual>(null);
+  const limpiarOverlay = useCallback(() => setResultadoVisual(null), []);
 
   // Nivel de dificultad elegido para las próximas preguntas (null = todos).
   // Se puede cambiar "en caliente" durante la partida.
@@ -55,6 +60,7 @@ export function PanelJuego({ partida, jugadores }: Props) {
     if (!turnoActual) return;
     correcta.mutate(turnoActual.id, {
       onSuccess: () => {
+        setResultadoVisual("correcto");
         reproducirSecuencia(["acertado", "risa_acertada"]);
         // Cargar siguiente pregunta automáticamente (del nivel elegido)
         avanzar.mutate({ partidaId: partida.id, nivel: nivelSel });
@@ -65,7 +71,10 @@ export function PanelJuego({ partida, jugadores }: Props) {
   const onIncorrecta = () => {
     if (!turnoActual) return;
     incorrecta.mutate(turnoActual.id, {
-      onSuccess: () => reproducirSecuencia(["fallado", "pregunta_fallada"])
+      onSuccess: () => {
+        setResultadoVisual("incorrecto");
+        reproducirSecuencia(["fallado", "pregunta_fallada"]);
+      }
     });
   };
 
@@ -76,6 +85,7 @@ export function PanelJuego({ partida, jugadores }: Props) {
 
   return (
     <div className="space-y-6">
+      <ResultadoOverlay resultado={resultadoVisual} onTerminado={limpiarOverlay} />
       <Tarjeta className="space-y-4">
         <header className="flex items-center justify-between gap-2">
           <span className="rounded-full bg-marca-azul text-white px-3 py-1 text-xs font-bold uppercase tracking-wide">
