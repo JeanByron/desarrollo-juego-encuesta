@@ -52,13 +52,6 @@ function AdminPartida() {
   // Termina la partida: vacía los datos de juego en la BD (conservando el banco
   // de preguntas), limpia la caché de la app y recarga el panel de la profesora.
   const onTerminar = () => {
-    if (
-      !confirm(
-        "¿Terminar la partida? Se borrarán los datos de juego (jugadores, respuestas y partidas) " +
-          "para liberar memoria. El banco de preguntas se conserva. Todos volverán al menú principal."
-      )
-    )
-      return;
     vaciar.mutate(undefined, {
       onSuccess: () => {
         queryClient.clear(); // libera la caché en memoria

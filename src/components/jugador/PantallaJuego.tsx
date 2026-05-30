@@ -32,6 +32,12 @@ export function PantallaJuego({ partida, yo, jugadores }: Props) {
   // no repetir; en el primer render solo "marcamos" las ya resueltas (sin sonar).
   const sonadas = useRef<Set<string>>(new Set());
   const sonidoListo = useRef(false);
+
+  // Contador "el siguiente en responder es…" que aparece cuando la profesora
+  // marca una respuesta como incorrecta.
+  const [siguienteJugador, setSiguienteJugador] = useState<Jugador | null>(null);
+  const [cuentaSiguiente, setCuentaSiguiente] = useState(0);
+
   useEffect(() => {
     for (const r of respuestas) {
       if (r.resultado !== "correcto" && r.resultado !== "incorrecto") continue;
@@ -46,10 +52,40 @@ export function PantallaJuego({ partida, yo, jugadores }: Props) {
             ? ["acertado", "risa_acertada"]
             : ["fallado", "pregunta_fallada"]
         );
+
+        // Si es incorrecto, buscar el próximo en turno y mostrar el contador.
+        if (r.resultado === "incorrecto") {
+          const siguiente = respuestas.find(
+            (x) => x.resultado === "pendiente" && x.id !== r.id
+          );
+          const jugSiguiente = siguiente
+            ? jugadores.find((j) => j.id === siguiente.jugador_id) ?? null
+            : null;
+          if (jugSiguiente) {
+            setSiguienteJugador(jugSiguiente);
+            setCuentaSiguiente(3);
+          }
+        }
       }
     }
     sonidoListo.current = true;
-  }, [respuestas, reproducirSecuencia]);
+  }, [respuestas, jugadores, reproducirSecuencia]);
+
+  // Cuenta regresiva del "siguiente jugador".
+  useEffect(() => {
+    if (cuentaSiguiente <= 0) return;
+    const id = setInterval(() => {
+      setCuentaSiguiente((n) => {
+        if (n <= 1) {
+          clearInterval(id);
+          setSiguienteJugador(null);
+          return 0;
+        }
+        return n - 1;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  }, [cuentaSiguiente]);
   // Cuenta atrás (3..1) al aparecer cada pregunta; 0 = pregunta visible.
   const [cuenta, setCuenta] = useState(0);
   const preguntaId = partida.pregunta_actual_id;
@@ -116,6 +152,25 @@ export function PantallaJuego({ partida, yo, jugadores }: Props) {
             </span>
           )}
         </header>
+
+        {/* Banner "el siguiente en responder es…" cuando la profesora marca X */}
+        {siguienteJugador && cuentaSiguiente > 0 && (
+          <div className="flex flex-col items-center gap-2 py-4 animate-pop">
+            <p className="font-display text-xl text-gray-700">El siguiente en responder es:</p>
+            <div className="flex items-center gap-3">
+              <Avatar avatarId={siguienteJugador.avatar} tamano="md" />
+              <span className="font-display font-extrabold text-2xl text-marca-rojo">
+                {siguienteJugador.nombre}
+              </span>
+            </div>
+            <div
+              key={cuentaSiguiente}
+              className="animate-pop font-display font-extrabold text-5xl text-simpson-naranja drop-shadow"
+            >
+              {cuentaSiguiente}
+            </div>
+          </div>
+        )}
 
         {enCuenta ? (
           <div className="py-6 flex flex-col items-center gap-3 min-h-[16rem] justify-center">
