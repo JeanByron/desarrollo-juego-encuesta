@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import html2canvas from "html2canvas";
+import * as XLSX from "xlsx";
 import { Tarjeta } from "@/components/shared/Tarjeta";
 import { Boton } from "@/components/shared/Boton";
 import { Podio } from "@/components/shared/Podio";
@@ -47,6 +48,22 @@ export function PantallaFinalAdmin({ partida, jugadores, terminando, onTerminar 
     }
   };
 
+  // Exporta el ranking (posición, nombre, puntos) a un archivo Excel.
+  const exportarExcel = () => {
+    const orden = [...jugadores].sort((a, b) => b.puntos - a.puntos);
+    const filas = orden.map((j, i) => ({
+      Posición: i + 1,
+      Nombre: j.nombre,
+      Puntos: j.puntos
+    }));
+    const hoja = XLSX.utils.json_to_sheet(filas);
+    hoja["!cols"] = [{ wch: 10 }, { wch: 30 }, { wch: 10 }];
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, "Resultados");
+    const fecha = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(libro, `resultados-${fecha}.xlsx`);
+  };
+
   return (
     <div className="space-y-6">
       {/* Tarjeta que se captura en el pantallazo */}
@@ -69,6 +86,14 @@ export function PantallaFinalAdmin({ partida, jugadores, terminando, onTerminar 
           disabled={descargando || jugadores.length === 0}
         >
           {descargando ? "Generando..." : "📸 Descargar pantallazo"}
+        </Boton>
+        <Boton
+          variante="exito"
+          tamano="lg"
+          onClick={exportarExcel}
+          disabled={jugadores.length === 0}
+        >
+          📊 Exportar a Excel
         </Boton>
         <Boton
           variante="peligro"

@@ -29,7 +29,7 @@ create index if not exists partidas_estado_idx on public.partidas (estado);
 create table if not exists public.jugadores (
     id              uuid primary key default gen_random_uuid(),
     partida_id      uuid not null references public.partidas(id) on delete cascade,
-    nombre          text not null check (length(trim(nombre)) between 1 and 30),
+    nombre          text not null check (length(trim(nombre)) between 1 and 50),
     avatar          text not null,
     puntos          int  not null default 0,
     estado          text not null default 'conectado'
@@ -146,7 +146,10 @@ end;
 $$;
 
 -- RPC: avanzar_a_pregunta_aleatoria
-create or replace function public.avanzar_a_pregunta_aleatoria(p_partida_id uuid)
+create or replace function public.avanzar_a_pregunta_aleatoria(
+    p_partida_id uuid,
+    p_nivel int default null
+)
 returns uuid
 language plpgsql
 security definer
@@ -158,6 +161,7 @@ begin
       into v_pregunta_id
       from public.preguntas p
      where p.activa = true
+       and (p_nivel is null or p.nivel = p_nivel)
        and not exists (
            select 1 from public.partida_preguntas pp
             where pp.partida_id = p_partida_id
@@ -167,16 +171,22 @@ begin
      limit 1;
 
     if v_pregunta_id is null then
-        delete from public.partida_preguntas where partida_id = p_partida_id;
+        delete from public.partida_preguntas
+         where partida_id = p_partida_id
+           and pregunta_id in (
+               select id from public.preguntas
+                where p_nivel is null or nivel = p_nivel
+           );
         select p.id into v_pregunta_id
           from public.preguntas p
          where p.activa = true
+           and (p_nivel is null or p.nivel = p_nivel)
          order by random()
          limit 1;
     end if;
 
     if v_pregunta_id is null then
-        raise exception 'No hay preguntas activas en el banco';
+        raise exception 'No hay preguntas activas para ese nivel';
     end if;
 
     insert into public.partida_preguntas (partida_id, pregunta_id)
@@ -310,8 +320,11 @@ create policy preguntas_admin_all on public.preguntas
     using (public.es_profesora())
     with check (public.es_profesora());
 
--- Vista pública (sin columna respuesta)
-create or replace view public.preguntas_publicas as
+-- Vista pública (sin columna respuesta).
+-- security_invoker = on: usa los permisos de QUIEN consulta (evita el aviso
+-- "Security Definer View" del Advisor). Requiere PostgreSQL 15+.
+create or replace view public.preguntas_publicas
+    with (security_invoker = on) as
     select id, pregunta, categoria, nivel, activa
       from public.preguntas;
 
@@ -362,7 +375,7 @@ create policy profesoras_insert_self on public.profesoras
     for insert with check (user_id = auth.uid());
 
 -- Grants para RPCs
-grant execute on function public.avanzar_a_pregunta_aleatoria(uuid) to authenticated;
+grant execute on function public.avanzar_a_pregunta_aleatoria(uuid, int) to anon, authenticated;
 grant execute on function public.registrar_respuesta_correcta(uuid) to authenticated;
 grant execute on function public.registrar_respuesta_incorrecta(uuid) to authenticated;
 grant execute on function public.finalizar_partida(uuid) to authenticated;

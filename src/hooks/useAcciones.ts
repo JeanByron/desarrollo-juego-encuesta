@@ -7,9 +7,10 @@ import { supabase } from "@/lib/supabase";
 
 export function useAvanzarPregunta() {
   return useMutation({
-    mutationFn: async (partidaId: string) => {
+    mutationFn: async (input: { partidaId: string; nivel?: number | null }) => {
       const { data, error } = await supabase.rpc("avanzar_a_pregunta_aleatoria", {
-        p_partida_id: partidaId
+        p_partida_id: input.partidaId,
+        p_nivel: input.nivel ?? null
       });
       if (error) throw error;
       return data as string;

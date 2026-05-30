@@ -121,7 +121,7 @@ export interface Database {
     };
     Functions: {
       avanzar_a_pregunta_aleatoria: {
-        Args: { p_partida_id: string };
+        Args: { p_partida_id: string; p_nivel?: number | null };
         Returns: string;
       };
       registrar_respuesta_correcta: {

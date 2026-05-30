@@ -2,6 +2,7 @@ import { FormEvent, useState } from "react";
 import { Tarjeta } from "@/components/shared/Tarjeta";
 import { Boton } from "@/components/shared/Boton";
 import { Logo } from "@/components/shared/Logo";
+import { LogoEscuela } from "@/components/shared/LogoEscuela";
 import { contieneGroseria } from "@/lib/groserias";
 
 interface Props {
@@ -19,8 +20,8 @@ export function PantallaNombre({ onListo }: Props) {
       setError("Escribe tu nombre (mínimo 2 letras).");
       return;
     }
-    if (limpio.length > 20) {
-      setError("Demasiado largo, usa un apodo más corto.");
+    if (limpio.length > 50) {
+      setError("Demasiado largo (máximo 50 caracteres).");
       return;
     }
     if (contieneGroseria(limpio)) {
@@ -32,6 +33,7 @@ export function PantallaNombre({ onListo }: Props) {
 
   return (
     <Tarjeta className="space-y-6">
+      <LogoEscuela className="h-20 w-20 mx-auto" />
       <Logo />
       <form onSubmit={submit} className="space-y-4">
         <label className="block">
@@ -41,7 +43,7 @@ export function PantallaNombre({ onListo }: Props) {
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
             placeholder="Ej: Juanita"
-            maxLength={20}
+            maxLength={50}
             className="w-full rounded-2xl border-4 border-marca-amarillo px-4 py-4 text-2xl font-bold focus:outline-none focus:border-marca-rojo"
           />
         </label>

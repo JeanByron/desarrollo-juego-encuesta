@@ -108,8 +108,11 @@ create policy preguntas_admin_all on public.preguntas
     using (public.es_profesora())
     with check (public.es_profesora());
 
--- Vista pública sin la columna respuesta
-create or replace view public.preguntas_publicas as
+-- Vista pública sin la columna respuesta.
+-- security_invoker = on: usa los permisos de QUIEN consulta (evita el aviso
+-- "Security Definer View" del Advisor). Requiere PostgreSQL 15+.
+create or replace view public.preguntas_publicas
+    with (security_invoker = on) as
     select id, pregunta, categoria, nivel, activa
       from public.preguntas;
 

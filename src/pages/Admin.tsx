@@ -10,6 +10,7 @@ import { GestorPreguntas } from "@/components/admin/GestorPreguntas";
 import { usePartidaActiva } from "@/hooks/usePartidaActiva";
 import { useJugadores } from "@/hooks/useJugadores";
 import { useAvanzarPregunta, useReiniciarPartida, useVaciarDatosPartida } from "@/hooks/useAcciones";
+import { LogoEscuela } from "@/components/shared/LogoEscuela";
 import { queryClient } from "@/lib/queryClient";
 
 export function AdminPage() {
@@ -24,7 +25,10 @@ export function AdminPage() {
 function NavAdmin({ titulo }: { titulo: string }) {
   return (
     <header className="flex flex-wrap items-center justify-between gap-2 mb-4 pr-14">
-      <h1 className="font-display text-2xl">{titulo}</h1>
+      <div className="flex items-center gap-3">
+        <LogoEscuela className="h-12 w-12" />
+        <h1 className="font-display text-2xl">{titulo}</h1>
+      </div>
       <nav className="flex gap-2">
         <Link to="/admin">
           <Boton variante="amarillo" tamano="md">🎮 Partida</Boton>
@@ -93,7 +97,7 @@ function AdminPartida() {
 
   const onIniciar = () => {
     setIniciando(true);
-    avanzar.mutate(partida.id, { onSettled: () => setIniciando(false) });
+    avanzar.mutate({ partidaId: partida.id }, { onSettled: () => setIniciando(false) });
   };
 
   const onReiniciar = () => {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Tarjeta } from "@/components/shared/Tarjeta";
 import { Avatar } from "@/components/shared/Avatar";
 import { TablaPuntajes } from "@/components/shared/TablaPuntajes";
@@ -19,8 +19,29 @@ export function PantallaJuego({ partida, yo, jugadores }: Props) {
   const { data: pregunta } = usePreguntaPublica(partida.pregunta_actual_id);
   const { data: respuestas = [] } = useRespuestas(partida.id, partida.pregunta_actual_id);
   const responder = useResponder();
-  const { reproducir } = useSonidos();
+  const { reproducir, reproducirSecuencia } = useSonidos();
   const [yaPulse, setYaPulse] = useState(false);
+
+  // Para que los jugadores TAMBIÉN escuchen los sonidos de acierto/error cuando
+  // la profesora marca una respuesta. Recordamos qué respuestas ya sonaron para
+  // no repetir; en el primer render solo "marcamos" las ya resueltas (sin sonar).
+  const sonadas = useRef<Set<string>>(new Set());
+  const sonidoListo = useRef(false);
+  useEffect(() => {
+    for (const r of respuestas) {
+      if (r.resultado !== "correcto" && r.resultado !== "incorrecto") continue;
+      if (sonadas.current.has(r.id)) continue;
+      sonadas.current.add(r.id);
+      if (sonidoListo.current) {
+        reproducirSecuencia(
+          r.resultado === "correcto"
+            ? ["acertado", "risa_acertada"]
+            : ["fallado", "pregunta_fallada"]
+        );
+      }
+    }
+    sonidoListo.current = true;
+  }, [respuestas, reproducirSecuencia]);
   // Cuenta atrás (3..1) al aparecer cada pregunta; 0 = pregunta visible.
   const [cuenta, setCuenta] = useState(0);
   const preguntaId = partida.pregunta_actual_id;

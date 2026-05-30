@@ -1,9 +1,9 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Tarjeta } from "@/components/shared/Tarjeta";
 import { Boton } from "@/components/shared/Boton";
 import { Avatar } from "@/components/shared/Avatar";
 import { TablaPuntajes } from "@/components/shared/TablaPuntajes";
-import { ordinal } from "@/lib/utils";
+import { cn, ordinal } from "@/lib/utils";
 import { useSonidos } from "@/hooks/useSonidos";
 import { usePreguntaCompleta } from "@/hooks/usePreguntaActual";
 import { useRespuestas } from "@/hooks/useRespuestas";
@@ -29,6 +29,16 @@ export function PanelJuego({ partida, jugadores }: Props) {
   const finalizar = useFinalizarPartida();
   const { reproducirSecuencia } = useSonidos();
 
+  // Nivel de dificultad elegido para las próximas preguntas (null = todos).
+  // Se puede cambiar "en caliente" durante la partida.
+  const [nivelSel, setNivelSel] = useState<number | null>(null);
+
+  // Spoiler: la respuesta sugerida queda oculta hasta que la profesora la toca.
+  const [verRespuesta, setVerRespuesta] = useState(false);
+  useEffect(() => {
+    setVerRespuesta(false);
+  }, [partida.pregunta_actual_id]);
+
   // El turno actual es la primera respuesta cuyo resultado siga 'pendiente'
   // (las marcadas como incorrectas se "saltan" y pasan al siguiente).
   const turnoActual: Respuesta | undefined = useMemo(
@@ -46,8 +56,8 @@ export function PanelJuego({ partida, jugadores }: Props) {
     correcta.mutate(turnoActual.id, {
       onSuccess: () => {
         reproducirSecuencia(["acertado", "risa_acertada"]);
-        // Cargar siguiente pregunta automáticamente
-        avanzar.mutate(partida.id);
+        // Cargar siguiente pregunta automáticamente (del nivel elegido)
+        avanzar.mutate({ partidaId: partida.id, nivel: nivelSel });
       }
     });
   };
@@ -59,7 +69,7 @@ export function PanelJuego({ partida, jugadores }: Props) {
     });
   };
 
-  const onSiguiente = () => avanzar.mutate(partida.id);
+  const onSiguiente = () => avanzar.mutate({ partidaId: partida.id, nivel: nivelSel });
   const onFin = () => finalizar.mutate(partida.id);
 
   const jugadorEnTurno = turnoActual ? jugadorPorId[turnoActual.jugador_id] : null;
@@ -80,10 +90,41 @@ export function PanelJuego({ partida, jugadores }: Props) {
           {pregunta?.pregunta ?? "Sin pregunta cargada"}
         </p>
         {pregunta?.respuesta && (
-          <p className="text-sm bg-yellow-100 rounded-xl p-3 italic">
-            <strong>Respuesta sugerida:</strong> {pregunta.respuesta}
-          </p>
+          <button
+            type="button"
+            onClick={() => setVerRespuesta((v) => !v)}
+            title={verRespuesta ? "Ocultar respuesta" : "Mostrar respuesta"}
+            className="w-full text-left text-sm bg-yellow-100 rounded-xl p-3 cursor-pointer"
+          >
+            <strong>Respuesta sugerida:</strong>{" "}
+            <span className={cn("transition", !verRespuesta && "blur-sm select-none")}>
+              {pregunta.respuesta}
+            </span>
+            {!verRespuesta && (
+              <span className="ml-2 not-italic text-gray-500">👁️ (toca para ver)</span>
+            )}
+          </button>
         )}
+
+        {/* Selector de nivel de dificultad — se puede cambiar en caliente */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm font-bold text-gray-600">Nivel de las preguntas:</span>
+          {[null, 1, 2, 3, 4, 5].map((n) => (
+            <button
+              key={n ?? "todos"}
+              type="button"
+              onClick={() => setNivelSel(n)}
+              className={cn(
+                "rounded-full px-3 py-1 text-sm font-bold border-2 transition cursor-pointer",
+                nivelSel === n
+                  ? "bg-marca-azul text-white border-marca-azul"
+                  : "bg-white text-gray-700 border-gray-300 hover:border-marca-azul"
+              )}
+            >
+              {n === null ? "Todos" : n}
+            </button>
+          ))}
+        </div>
 
         <div className="flex flex-wrap gap-2 justify-end">
           <Boton variante="neutro" onClick={onSiguiente} disabled={avanzar.isPending}>
