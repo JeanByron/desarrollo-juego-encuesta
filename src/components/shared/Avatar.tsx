@@ -46,9 +46,9 @@ export function Avatar({ avatarId, tamano = "md", flotando, className, style }: 
           loading="lazy"
           draggable={false}
           onError={() => setImagenFallo(true)}
-          // object-contain + tamaño 80% deja "aire" alrededor del personaje
-          // para que cuerpos enteros (Homero, Marge, Krusty) queden centrados
-          // y a la misma escala que los retratos tipo Bart/Lisa.
+          // object-contain + 95% del círculo deja un poco de "aire" alrededor,
+          // así los cuerpos enteros (Homero, Marge, Krusty) quedan centrados y
+          // a una escala parecida a la de los retratos tipo Bart/Lisa.
           className="w-[95%] h-[95%] object-contain object-center pointer-events-none drop-shadow"
         />
       ) : (

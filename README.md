@@ -21,7 +21,8 @@ desde su celular, tablet o computador — sin instalar nada.
 6. [Despliegue paso a paso](#6-despliegue-paso-a-paso)
 7. [Operación en clase](#7-operación-en-clase)
 8. [Importar más preguntas](#8-importar-más-preguntas)
-9. [Tecnologías](#9-tecnologías)
+9. [Personajes y avatares](#9-personajes-y-avatares)
+10. [Tecnologías](#10-tecnologías)
 
 ---
 
@@ -105,6 +106,8 @@ Tres detalles de diseño que importan:
 ├── .env.example
 ├── public/
 │   ├── favicon.svg
+│   ├── logo_escuela.png        ← escudo del colegio (se muestra en pantalla)
+│   ├── personajes/             ← imágenes PNG de cada avatar (1 por personaje)
 │   └── sonidos/                ← exito.mp3 + pato.mp3 (los pones tú)
 ├── supabase/
 │   └── migrations/
@@ -135,9 +138,9 @@ Tres detalles de diseño que importan:
     │   ├── useAcciones.ts      ← RPCs + insert de respuesta
     │   └── useSonidos.ts
     ├── data/
-    │   └── personajes.ts       ← Catálogo Simpson (id, nombre, emoji, color)
+    │   └── personajes.ts       ← Catálogo Simpson (id, nombre, emoji, imagen, color)
     ├── components/
-    │   ├── shared/             ← Boton, Avatar, Tarjeta, Layout, Logo, TablaPuntajes
+    │   ├── shared/             ← Boton, Avatar, Tarjeta, Layout, Logo, LogoEscuela, TablaPuntajes
     │   ├── jugador/            ← PantallaNombre, SeleccionPersonaje, PantallaEspera, PantallaJuego, PantallaFinal
     │   └── admin/              ← Login, Lobby, PanelJuego, GestorPreguntas, PantallaFinalAdmin
     └── pages/
@@ -329,7 +332,76 @@ Soporta `.csv`, `.xlsx`, `.xls`. Se inserta en lotes de 500 para que puedas subi
 
 ---
 
-## 9. Tecnologías
+## 9. Personajes y avatares
+
+Los estudiantes eligen un personaje de Los Simpson al entrar. Todo el catálogo
+vive en un solo archivo: [`src/data/personajes.ts`](src/data/personajes.ts).
+La idea es que añadir, quitar o renombrar personajes sea cosa de tocar **un
+único lugar**, sin perseguir referencias por todo el código.
+
+### 9.1 Cómo se dibuja un avatar
+
+El componente [`src/components/shared/Avatar.tsx`](src/components/shared/Avatar.tsx)
+recibe un `avatarId`, busca el personaje en el catálogo y lo pinta así:
+
+- Un **círculo con fondo turquesa** (`bg-teal-400`) y borde blanco.
+- Encima, la **imagen PNG** del personaje (con fondo transparente, por eso se
+  ve el turquesa detrás).
+- Si la imagen no carga (404, sin internet, etc.), cae automáticamente al
+  **emoji** definido en el catálogo. Nunca se queda en blanco.
+
+Cada entrada del catálogo tiene estos campos:
+
+| Campo    | Para qué sirve                                                        |
+| -------- | --------------------------------------------------------------------- |
+| `id`     | Clave interna. Se guarda en `jugadores.avatar` (base de datos).       |
+| `nombre` | Texto que ve el estudiante bajo el avatar.                            |
+| `emoji`  | Plan B si la imagen no carga.                                         |
+| `imagen` | Ruta pública del PNG, p. ej. `/personajes/bart.png`.                  |
+| `color`  | Clase Tailwind de acento del personaje (bordes, detalles).            |
+
+> ⚠️ **No renombres un `id` que ya esté en uso.** Se guarda en partidas
+> pasadas y existe la restricción `unique(partida_id, avatar)`; cambiarlo
+> rompería datos históricos. Para "renombrar" lo visible, cambia solo `nombre`.
+
+### 9.2 Cómo agregar un personaje nuevo
+
+1. **Prepara la imagen.** Necesitas un **PNG con fondo transparente** (sin el
+   fondo blanco/de color original), porque el círculo turquesa del avatar va
+   por detrás. Lo ideal es un lienzo **cuadrado de 720×720 px** con el
+   personaje centrado y un poco de aire alrededor, igual que el resto.
+   - Si tu imagen trae fondo (un `.jpg`, `.jfif`, etc.), primero hay que
+     **recortarlo**. Sirve cualquier editor (Photoshop, GIMP, remove.bg) o una
+     herramienta de quitar fondo por IA. Lo importante es que el resultado sea
+     PNG transparente.
+2. **Guárdala** en `public/personajes/` con un nombre en minúsculas y sin
+   espacios, p. ej. `public/personajes/ralph.png`.
+3. **Regístrala** en `src/data/personajes.ts` añadiendo una línea al arreglo
+   `PERSONAJES`:
+   ```ts
+   { id: "ralph", nombre: "Ralph Wiggum", emoji: "🌟", imagen: "/personajes/ralph.png", color: "bg-marca-rosado" },
+   ```
+   El `id` debe coincidir con el nombre del archivo (sin la carpeta ni `.png`).
+4. ¡Listo! Aparece solo en la pantalla de selección y en todas las tablas de
+   puntajes. No hay que tocar nada más.
+
+### 9.3 El logo del colegio
+
+El escudo está en `public/logo_escuela.png` y se pinta con el componente
+[`src/components/shared/LogoEscuela.tsx`](src/components/shared/LogoEscuela.tsx).
+Aparece pequeño en la **esquina superior izquierda** de las pantallas del
+estudiante. Se activa pasando la prop `logoEscuela` al `Layout`:
+
+```tsx
+<Layout logoEscuela>...</Layout>
+```
+
+Para cambiar el escudo, reemplaza el archivo `public/logo_escuela.png`
+(conserva el mismo nombre) y nada más.
+
+---
+
+## 10. Tecnologías
 
 - **React 18 + TypeScript** — UI tipada.
 - **Vite 5** — build rápido, dev server con HMR.
