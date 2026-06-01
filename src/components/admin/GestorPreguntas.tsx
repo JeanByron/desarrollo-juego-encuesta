@@ -172,15 +172,57 @@ export function GestorPreguntas() {
       <Tarjeta className="space-y-3">
         <h2 className="font-display text-2xl">📥 Importación masiva</h2>
         <p className="text-sm text-gray-600">
-          Sube un archivo <strong>.csv</strong>, <strong>.xlsx</strong> o{" "}
-          <strong>.xls</strong>. La primera fila debe contener encabezados:{" "}
-          <code>pregunta, respuesta, categoria, nivel</code>. Solo{" "}
-          <code>pregunta</code> es obligatorio.
+          Sube un archivo <strong>.csv</strong>, <strong>.txt</strong>,{" "}
+          <strong>.xlsx</strong>, <strong>.xls</strong> o{" "}
+          <strong>Word (.docx)</strong>. La primera fila/línea debe contener los
+          encabezados <code>pregunta, respuesta, categoria, nivel</code>. Solo{" "}
+          <code>pregunta</code> es obligatorio; <code>nivel</code> va de 1 a 5.
         </p>
+
+        {/* Ejemplo desplegable de cómo escribir el archivo para que el juego lo acepte. */}
+        <details className="text-sm bg-yellow-50 rounded-xl border border-yellow-200 p-3">
+          <summary className="cursor-pointer font-bold">
+            📄 Ver ejemplo de cómo escribir el archivo
+          </summary>
+          <div className="mt-3 space-y-4">
+            <div>
+              <p className="font-bold mb-1">
+                En <code>.txt</code>, <code>.csv</code> o Word: una pregunta por
+                línea, separando los campos con una barra vertical{" "}
+                <code>|</code>.
+              </p>
+              <pre className="overflow-x-auto rounded-lg bg-white border border-gray-200 p-2 text-xs leading-relaxed">
+{`pregunta | respuesta | categoria | nivel
+¿Cuál es la capital de Francia? | París | Geografía | 1
+¿Cuánto es 7 × 8? | 56 | Matemáticas | 2
+¿En qué año llegó el hombre a la Luna? | 1969 | Historia | 3`}
+              </pre>
+            </div>
+            <div>
+              <p className="font-bold mb-1">
+                En Excel (<code>.xlsx</code>/<code>.xls</code>): una columna por
+                campo, con los encabezados en la primera fila.
+              </p>
+              <pre className="overflow-x-auto rounded-lg bg-white border border-gray-200 p-2 text-xs leading-relaxed">
+{`pregunta                          | respuesta | categoria   | nivel
+¿Cuál es la capital de Francia?   | París     | Geografía   | 1
+¿Cuánto es 7 × 8?                 | 56        | Matemáticas | 2`}
+              </pre>
+            </div>
+            <p className="text-gray-500">
+              💡 Usa la barra <code>|</code> como separador: así las comas que
+              haya dentro de una pregunta no rompen las columnas. Si dejas{" "}
+              <code>respuesta</code>, <code>categoria</code> o{" "}
+              <code>nivel</code> en blanco, se usan valores por defecto
+              (categoría «General», nivel 1).
+            </p>
+          </div>
+        </details>
+
         <input
           ref={inputArchivo}
           type="file"
-          accept=".csv,.xlsx,.xls"
+          accept=".csv,.txt,.xlsx,.xls,.docx"
           onChange={(e) => {
             const f = e.target.files?.[0];
             if (f) void onArchivo(f);
@@ -254,25 +296,49 @@ export function GestorPreguntas() {
 }
 
 // ---------------------------------------------------------------------------
-// Helpers para leer CSV / XLSX en cliente
+// Helpers para leer CSV / TXT / Word (.docx) / Excel en el cliente
 // ---------------------------------------------------------------------------
-async function leerArchivo(
-  file: File
-): Promise<Array<{ pregunta: string; respuesta?: string; categoria?: string; nivel?: number }>> {
+type FilaImport = { pregunta: string; respuesta?: string; categoria?: string; nivel?: number };
+
+async function leerArchivo(file: File): Promise<FilaImport[]> {
   const lower = file.name.toLowerCase();
-  if (lower.endsWith(".csv")) {
-    return new Promise((resolve, reject) => {
-      Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (res) => resolve(res.data as never),
-        error: reject
-      });
-    });
+
+  // Word: extraemos el texto plano del .docx y lo tratamos como texto.
+  // Importamos mammoth de forma dinámica para que solo se descargue cuando de
+  // verdad se sube un Word (no infla el resto del panel).
+  if (lower.endsWith(".docx")) {
+    const mod = await import("mammoth");
+    const mammoth = (mod as { extractRawText?: unknown }).extractRawText
+      ? (mod as typeof import("mammoth"))
+      : ((mod as { default: typeof import("mammoth") }).default);
+    const buf = await file.arrayBuffer();
+    const { value } = await mammoth.extractRawText({ arrayBuffer: buf });
+    return parsearTexto(value);
   }
-  // Excel
+
+  // Texto plano (.txt) y CSV: mismo parseo. PapaParse detecta solo el
+  // separador (coma, barra vertical, punto y coma o tabulación).
+  if (lower.endsWith(".csv") || lower.endsWith(".txt")) {
+    const texto = await file.text();
+    return parsearTexto(texto);
+  }
+
+  // Excel (.xlsx / .xls)
   const buf = await file.arrayBuffer();
   const wb = XLSX.read(buf, { type: "array" });
   const sheet = wb.Sheets[wb.SheetNames[0]];
   return XLSX.utils.sheet_to_json(sheet, { defval: "" }) as never;
+}
+
+// Parsea texto con encabezados en la primera línea. Recorta espacios y pasa los
+// encabezados a minúsculas, así "pregunta | respuesta" (con espacios alrededor
+// de la barra) o "Pregunta" funcionan igual que "pregunta".
+function parsearTexto(texto: string): FilaImport[] {
+  const res = Papa.parse<Record<string, string>>(texto, {
+    header: true,
+    skipEmptyLines: true,
+    transformHeader: (h) => h.trim().toLowerCase(),
+    transform: (v) => v.trim()
+  });
+  return res.data as never;
 }

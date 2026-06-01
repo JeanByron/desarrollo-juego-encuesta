@@ -63,7 +63,7 @@ export function useImportarPreguntas() {
           pregunta: r.pregunta.trim(),
           respuesta: r.respuesta?.toString().trim() || null,
           categoria: (r.categoria?.toString().trim() || "General"),
-          nivel: Math.min(3, Math.max(1, Number(r.nivel) || 1))
+          nivel: Math.min(5, Math.max(1, Number(r.nivel) || 1))
         }));
 
       if (normalizado.length === 0) return { insertados: 0 };
