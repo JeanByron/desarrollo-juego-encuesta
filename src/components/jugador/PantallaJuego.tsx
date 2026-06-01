@@ -233,7 +233,7 @@ export function PantallaJuego({ partida, yo, jugadores }: Props) {
               >
                 {esMiTurno ? (
                   <p className="font-display font-extrabold text-xl text-marca-rojo animate-latido">
-                    ¡La profesora te está evaluando!
+                    ✋ ¡Es tu turno de responder!
                   </p>
                 ) : (
                   <>

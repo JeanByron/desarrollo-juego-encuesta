@@ -21,6 +21,13 @@ interface Props {
   jugadores: Jugador[];
 }
 
+// Cuánto esperamos tras marcar "correcto" antes de cambiar de pregunta. Da
+// tiempo a que el overlay ✔ y el sonido de acierto se reproduzcan en TODOS los
+// dispositivos —en especial el del jugador que acertó— antes de que su pantalla
+// salte a la siguiente pregunta. Debe ir un poco por encima de la duración del
+// ResultadoOverlay (~2.1 s).
+const ESPERA_RESULTADO_MS = 2200;
+
 export function PanelJuego({ partida, jugadores }: Props) {
   const { data: pregunta } = usePreguntaCompleta(partida.pregunta_actual_id);
   const { data: respuestas = [] } = useRespuestas(partida.id, partida.pregunta_actual_id);
@@ -33,6 +40,10 @@ export function PanelJuego({ partida, jugadores }: Props) {
   // Estado para el overlay visual de resultado (funciona con o sin sonido).
   const [resultadoVisual, setResultadoVisual] = useState<ResultadoVisual>(null);
   const limpiarOverlay = useCallback(() => setResultadoVisual(null), []);
+
+  // Mientras se muestra la celebración de acierto y aún no cambiamos de pregunta,
+  // bloqueamos los botones de avance para no saltar dos preguntas por error.
+  const [transicion, setTransicion] = useState(false);
 
   // Nivel de dificultad elegido para las próximas preguntas (null = todos).
   // Se puede cambiar "en caliente" durante la partida.
@@ -57,13 +68,24 @@ export function PanelJuego({ partida, jugadores }: Props) {
   );
 
   const onCorrecta = () => {
-    if (!turnoActual) return;
+    if (!turnoActual || transicion) return;
+    const partidaId = partida.id;
+    const nivel = nivelSel;
     correcta.mutate(turnoActual.id, {
       onSuccess: () => {
         setResultadoVisual("correcto");
         reproducirSecuencia(["acertado", "risa_acertada"]);
-        // Cargar siguiente pregunta automáticamente (del nivel elegido)
-        avanzar.mutate({ partidaId: partida.id, nivel: nivelSel });
+        // NO avanzamos al instante: si lo hiciéramos, la pantalla del jugador que
+        // acertó saltaría a la nueva pregunta antes de mostrar el ✔ + sonido.
+        // Esperamos a que termine la celebración y luego cargamos la siguiente
+        // pregunta (del nivel elegido).
+        setTransicion(true);
+        window.setTimeout(() => {
+          avanzar.mutate(
+            { partidaId, nivel },
+            { onSettled: () => setTransicion(false) }
+          );
+        }, ESPERA_RESULTADO_MS);
       }
     });
   };
@@ -78,7 +100,10 @@ export function PanelJuego({ partida, jugadores }: Props) {
     });
   };
 
-  const onSiguiente = () => avanzar.mutate({ partidaId: partida.id, nivel: nivelSel });
+  const onSiguiente = () => {
+    if (transicion) return;
+    avanzar.mutate({ partidaId: partida.id, nivel: nivelSel });
+  };
   const onFin = () => finalizar.mutate(partida.id);
 
   const jugadorEnTurno = turnoActual ? jugadorPorId[turnoActual.jugador_id] : null;
@@ -137,10 +162,14 @@ export function PanelJuego({ partida, jugadores }: Props) {
         </div>
 
         <div className="flex flex-wrap gap-2 justify-end">
-          <Boton variante="neutro" onClick={onSiguiente} disabled={avanzar.isPending}>
+          <Boton
+            variante="neutro"
+            onClick={onSiguiente}
+            disabled={avanzar.isPending || transicion}
+          >
             ⏭ Saltar pregunta
           </Boton>
-          <Boton variante="peligro" onClick={onFin} disabled={finalizar.isPending}>
+          <Boton variante="peligro" onClick={onFin} disabled={finalizar.isPending || transicion}>
             🛑 Finalizar juego
           </Boton>
         </div>
