@@ -25,7 +25,11 @@ export const PERSONAJES: Personaje[] = [
   { id: "apu",      nombre: "Apu",      emoji: "🛒", imagen: "/personajes/apu.png",      color: "bg-marca-morado" },
   { id: "krusty",   nombre: "Krusty",   emoji: "🤡", imagen: "/personajes/krusty.png",   color: "bg-marca-rosado" },
   { id: "flanders", nombre: "Flanders", emoji: "🙏", imagen: "/personajes/flanders.png", color: "bg-marca-verde" },
-  { id: "burns",    nombre: "Sr. Burns", emoji: "💰", imagen: "/personajes/burns.png",   color: "bg-marca-morado" }
+  { id: "burns",         nombre: "Sr. Burns",       emoji: "💰", imagen: "/personajes/burns.png",              color: "bg-marca-morado" },
+  { id: "grandma_flanders", nombre: "Abuela Flanders", emoji: "👵", imagen: "/personajes/grandma_flanders.jfif", color: "bg-marca-azul"    },
+  { id: "selma",         nombre: "Selma",           emoji: "🚬", imagen: "/personajes/selma.jfif",            color: "bg-marca-rojo"    },
+  { id: "sideshow_bob",  nombre: "Sideshow Bob",    emoji: "🎭", imagen: "/personajes/sideshow_bob.jfif",     color: "bg-marca-verde"   },
+  { id: "ralph",         nombre: "Ralph Wiggum",    emoji: "🌟", imagen: "/personajes/ralph.jfif",            color: "bg-marca-rosado"  }
 ];
 
 export function buscarPersonaje(id: string): Personaje | undefined {

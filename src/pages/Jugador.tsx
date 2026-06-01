@@ -67,7 +67,7 @@ export function JugadorPage() {
 
   if (isLoading) {
     return (
-      <Layout ancho="estrecho" centrado>
+      <Layout ancho="estrecho" centrado logoEscuela>
         <Tarjeta className="text-center">Cargando partida...</Tarjeta>
       </Layout>
     );
@@ -75,7 +75,7 @@ export function JugadorPage() {
 
   if (!partida) {
     return (
-      <Layout ancho="estrecho" centrado>
+      <Layout ancho="estrecho" centrado logoEscuela>
         <Tarjeta className="text-center space-y-2">
           <h2 className="font-display text-2xl">Aún no hay partida</h2>
           <p className="text-gray-600">
@@ -90,7 +90,7 @@ export function JugadorPage() {
   if (partida.estado === "finalizada") {
     if (yo) {
       return (
-        <Layout>
+        <Layout logoEscuela>
           <PantallaFinal
             yo={yo}
             jugadores={jugadores}
@@ -103,7 +103,7 @@ export function JugadorPage() {
       );
     }
     return (
-      <Layout ancho="estrecho" centrado>
+      <Layout ancho="estrecho" centrado logoEscuela>
         <Tarjeta className="text-center space-y-2">
           <h2 className="font-display text-2xl">La partida ya terminó</h2>
           <p>Espera a que la profesora cree una nueva para volver a jugar.</p>
@@ -116,7 +116,7 @@ export function JugadorPage() {
   if (!yo) {
     if (pasoLocal === "nombre") {
       return (
-        <Layout ancho="estrecho" centrado>
+        <Layout ancho="estrecho" centrado logoEscuela>
           <PantallaNombre
             onListo={(n) => {
               setNombreLocal(n);
@@ -128,7 +128,7 @@ export function JugadorPage() {
     }
 
     return (
-      <Layout ancho="estrecho" centrado>
+      <Layout ancho="estrecho" centrado logoEscuela>
         <SeleccionPersonaje
           nombre={nombreLocal || nombre}
           cargando={registrando}
@@ -176,14 +176,14 @@ export function JugadorPage() {
   // Ya estoy registrado
   if (partida.estado === "lobby") {
     return (
-      <Layout ancho="estrecho" centrado>
+      <Layout ancho="estrecho" centrado logoEscuela>
         <PantallaEspera yo={yo} jugadores={jugadores} />
       </Layout>
     );
   }
 
   return (
-    <Layout>
+    <Layout logoEscuela>
       <PantallaJuego partida={partida} yo={yo} jugadores={jugadores} />
     </Layout>
   );
