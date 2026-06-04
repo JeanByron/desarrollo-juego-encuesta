@@ -29,7 +29,15 @@ export const PERSONAJES: Personaje[] = [
   { id: "grandma_flanders", nombre: "Abuela Flanders", emoji: "👵", imagen: "/personajes/grandma_flanders.png", color: "bg-marca-azul"    },
   { id: "selma",         nombre: "Selma",           emoji: "🚬", imagen: "/personajes/selma.png",            color: "bg-marca-rojo"    },
   { id: "sideshow_bob",  nombre: "Sideshow Bob",    emoji: "🎭", imagen: "/personajes/sideshow_bob.png",     color: "bg-marca-verde"   },
-  { id: "ralph",         nombre: "Ralph Wiggum",    emoji: "🌟", imagen: "/personajes/ralph.png",            color: "bg-marca-rosado"  }
+  { id: "ralph",         nombre: "Ralph Wiggum",    emoji: "🌟", imagen: "/personajes/ralph.png",            color: "bg-marca-rosado"  },
+  { id: "abuelo",        nombre: "Abuelo Simpson",  emoji: "👴", imagen: "/personajes/abuelo.png",           color: "bg-marca-azul"    },
+  { id: "ayudante_santa", nombre: "Ayudante de Santa", emoji: "🐕", imagen: "/personajes/ayudante_santa.png", color: "bg-marca-rojo"   },
+  { id: "bleeding_gums", nombre: "Bleeding Gums",   emoji: "🎷", imagen: "/personajes/bleeding_gums.png",    color: "bg-marca-morado"  },
+  { id: "wiggum",        nombre: "Jefe Wiggum",     emoji: "👮", imagen: "/personajes/wiggum.png",           color: "bg-marca-azul"    },
+  { id: "loca_gatos",    nombre: "Loca de los Gatos", emoji: "🐱", imagen: "/personajes/loca_gatos.png",     color: "bg-marca-verde"   },
+  { id: "skinner",       nombre: "Director Skinner", emoji: "🎓", imagen: "/personajes/skinner.png",         color: "bg-marca-amarillo" },
+  { id: "edna",          nombre: "Edna Krabappel",  emoji: "🍎", imagen: "/personajes/edna.png",             color: "bg-marca-rosado"  },
+  { id: "hibbert",       nombre: "Dr. Hibbert",     emoji: "🩺", imagen: "/personajes/hibbert.png",          color: "bg-marca-verde"   }
 ];
 
 export function buscarPersonaje(id: string): Personaje | undefined {

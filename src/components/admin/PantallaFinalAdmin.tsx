@@ -56,7 +56,8 @@ export function PantallaFinalAdmin({ partida, jugadores, terminando, onTerminar 
     }
   };
 
-  // Exporta el ranking (posición, nombre, puntos) a un archivo Excel.
+  // Exporta el ranking (posición, nombre, puntos) a un archivo Excel, con la
+  // fecha de la partida como encabezado dentro de la hoja.
   const exportarExcel = () => {
     const orden = [...jugadores].sort((a, b) => b.puntos - a.puntos);
     const filas = orden.map((j, i) => ({
@@ -64,12 +65,23 @@ export function PantallaFinalAdmin({ partida, jugadores, terminando, onTerminar 
       Nombre: j.nombre,
       Puntos: j.puntos
     }));
-    const hoja = XLSX.utils.json_to_sheet(filas);
+
+    // Fecha de la partida: fin si existe, si no la de creación.
+    const fechaPartida = new Date(partida.fecha_fin ?? partida.creada_en);
+    const fechaLegible = fechaPartida.toLocaleDateString("es-CO", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric"
+    });
+
+    // Encabezado con la fecha en A1 y la tabla a partir de la fila 3.
+    const hoja = XLSX.utils.aoa_to_sheet([[`Partida del ${fechaLegible}`]]);
+    XLSX.utils.sheet_add_json(hoja, filas, { origin: "A3" });
     hoja["!cols"] = [{ wch: 10 }, { wch: 30 }, { wch: 10 }];
     const libro = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(libro, hoja, "Resultados");
-    const fecha = new Date().toISOString().slice(0, 10);
-    XLSX.writeFile(libro, `resultados-${fecha}.xlsx`);
+    const fechaArchivo = fechaPartida.toISOString().slice(0, 10);
+    XLSX.writeFile(libro, `resultados-${fechaArchivo}.xlsx`);
   };
 
   return (
