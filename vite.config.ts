@@ -24,10 +24,16 @@ export default defineConfig({
         // cambian, el navegador del estudiante las guarda en caché y, cuando
         // publicas una nueva versión del juego, solo vuelve a bajar el código
         // de la app (pequeño), no las librerías. Menos ancho de banda repetido.
-        manualChunks: {
-          react: ["react", "react-dom", "react-router-dom"],
-          supabase: ["@supabase/supabase-js"],
-          query: ["@tanstack/react-query"]
+        manualChunks(id) {
+          if (id.includes("node_modules/react/") || id.includes("node_modules/react-dom/") || id.includes("node_modules/react-router-dom/")) {
+            return "react";
+          }
+          if (id.includes("node_modules/@supabase/")) {
+            return "supabase";
+          }
+          if (id.includes("node_modules/@tanstack/react-query")) {
+            return "query";
+          }
         }
       }
     }
