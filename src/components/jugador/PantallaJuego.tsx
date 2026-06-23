@@ -204,72 +204,70 @@ export function PantallaJuego({ partida, yo, jugadores }: Props) {
           </div>
         )}
 
-        {enCuenta ? (
-          <div className="py-6 flex flex-col items-center gap-3 min-h-[16rem] justify-center">
-            <p className="font-display text-2xl md:text-3xl">¡Prepárate! 🤔</p>
-            <div
-              key={cuenta}
-              className="animate-pop font-display font-extrabold text-7xl md:text-8xl text-marca-rojo drop-shadow"
-            >
-              {cuenta}
-            </div>
-            <p className="text-gray-600 font-bold">La pregunta aparece en…</p>
-          </div>
-        ) : (
-          <>
-            <p className="font-display text-2xl md:text-4xl leading-tight min-h-[6rem]">
-              {pregunta?.pregunta ?? "Esperando pregunta..."}
-            </p>
+        {/* La pregunta se ve de inmediato; el botón tiene un cooldown de 3 s
+            (deshabilitado y mostrando la cuenta) para que nadie lo spamee antes
+            de tiempo. Todos pueden responder a partir del mismo instante (fin
+            del cooldown), así que la competencia sigue siendo justa. */}
+        <p className="font-display text-2xl md:text-4xl leading-tight min-h-[6rem]">
+          {pregunta?.pregunta ?? "Esperando pregunta..."}
+        </p>
 
-            {/* Banner de quién responde ahora (visible cuando la profesora evalúa) */}
-            {jugadorEnTurno && !siguienteJugador && (
-              <div
-                className={cn(
-                  "flex items-center justify-center gap-3 rounded-2xl px-4 py-3 animate-pop",
-                  esMiTurno
-                    ? "bg-marca-amarillo border-2 border-simpson-naranja"
-                    : "bg-white/70"
-                )}
-              >
-                {esMiTurno ? (
-                  <p className="font-display font-extrabold text-xl text-marca-rojo animate-latido">
-                    ✋ ¡Es tu turno de responder!
-                  </p>
-                ) : (
-                  <>
-                    <Avatar avatarId={jugadorEnTurno.avatar} tamano="md" />
-                    <div className="text-left">
-                      <p className="text-xs text-gray-500 font-bold uppercase tracking-wide">
-                        Respondiendo ahora
-                      </p>
-                      <p className="font-display font-extrabold text-xl">
-                        {jugadorEnTurno.nombre}
-                      </p>
-                    </div>
-                  </>
-                )}
-              </div>
+        {/* Banner de quién responde ahora (visible cuando la profesora evalúa) */}
+        {jugadorEnTurno && !siguienteJugador && (
+          <div
+            className={cn(
+              "flex items-center justify-center gap-3 rounded-2xl px-4 py-3 animate-pop",
+              esMiTurno
+                ? "bg-marca-amarillo border-2 border-simpson-naranja"
+                : "bg-white/70"
             )}
-
-            <button
-              type="button"
-              onClick={onResponder}
-              disabled={bloqueado || !partida.pregunta_actual_id}
-              className={cn(
-                "boton-gigante",
-                bloqueado
-                  ? "bg-marca-verde cursor-not-allowed"
-                  : "bg-simpson-naranja hover:brightness-105 animate-latido"
-              )}
-            >
-              {bloqueado ? (
-                ordenEnLista ? `¡${ordinal(ordenEnLista)}!` : "¡Esperando turno!"
-              ) : (
-                "¡Responder!"
-              )}
-            </button>
-          </>
+          >
+            {esMiTurno ? (
+              <p className="font-display font-extrabold text-xl text-marca-rojo animate-latido">
+                ✋ ¡Es tu turno de responder!
+              </p>
+            ) : (
+              <>
+                <Avatar avatarId={jugadorEnTurno.avatar} tamano="md" />
+                <div className="text-left">
+                  <p className="text-xs text-gray-500 font-bold uppercase tracking-wide">
+                    Respondiendo ahora
+                  </p>
+                  <p className="font-display font-extrabold text-xl">
+                    {jugadorEnTurno.nombre}
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
         )}
+
+        <button
+          type="button"
+          onClick={onResponder}
+          disabled={enCuenta || bloqueado || !partida.pregunta_actual_id}
+          className={cn(
+            "boton-gigante",
+            enCuenta
+              ? "bg-gray-400 cursor-not-allowed"
+              : bloqueado
+              ? "bg-marca-verde cursor-not-allowed"
+              : "bg-simpson-naranja hover:brightness-105 animate-latido"
+          )}
+        >
+          {enCuenta ? (
+            <span className="inline-flex items-center gap-3">
+              <span className="text-xl md:text-2xl">⏳ Espera…</span>
+              <span key={cuenta} className="animate-pop inline-block">
+                {cuenta}
+              </span>
+            </span>
+          ) : bloqueado ? (
+            ordenEnLista ? `¡${ordinal(ordenEnLista)}!` : "¡Esperando turno!"
+          ) : (
+            "¡Responder!"
+          )}
+        </button>
 
         {respuestas.length > 0 && (
           <div className="text-left">
