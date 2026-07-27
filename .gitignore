@@ -29,3 +29,9 @@ preguntas.txt
 supabase-db-password.txt
 .vercel
 .env*
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
