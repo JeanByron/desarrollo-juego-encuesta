@@ -1,7 +1,11 @@
 # ============================================================
-# Deploy automático a Netlify en cada push a main
+# Deploy automático a Vercel en cada push a main
 # ============================================================
-name: Deploy a Netlify
+# Requisitos (una sola vez):
+#   - Secret del repo: VERCEL_TOKEN  (Settings -> Secrets and variables -> Actions)
+#   Las variables VITE_* NO van aquí: se leen automáticamente desde Vercel
+#   con `vercel pull` (ya están configuradas en el proyecto).
+name: Deploy a Vercel (producción)
 
 on:
   push:
@@ -9,9 +13,9 @@ on:
   workflow_dispatch:
 
 env:
-  VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-  VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-  VITE_ADMIN_PASSWORD: ${{ secrets.VITE_ADMIN_PASSWORD }}
+  # IDs del proyecto en Vercel (no son secretos).
+  VERCEL_ORG_ID: team_vv7JAOS6mZFGsohgJ0w92lgf
+  VERCEL_PROJECT_ID: prj_goDiuwEKNzf0kbU3ozNq2nFRQmAy
 
 jobs:
   deploy:
@@ -24,19 +28,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
-      - name: Instalar dependencias
-        run: npm ci
+      - name: Instalar Vercel CLI
+        run: npm install --global vercel@latest
 
-      - name: Build de producción
-        run: npm run build
+      - name: Traer configuración y variables de entorno de Vercel
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Deploy a Netlify
-        uses: nwtgck/actions-netlify@v3
-        with:
-          publish-dir: './dist'
-          production-deploy: true
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      - name: Compilar (usa las VITE_* guardadas en Vercel)
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Desplegar a producción
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}

@@ -24,3 +24,8 @@ preguntas.txt
 
 # Configuracion local de Claude Code (permisos por maquina)
 .claude/settings.local.json
+
+# Credenciales locales (nunca subir)
+supabase-db-password.txt
+.vercel
+.env*
